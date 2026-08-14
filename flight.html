@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hawk Flight &mdash; Corkscrew Middle School</title>
+<style>
+  :root{--navy:#14274E;--navy2:#1E355E;--navy3:#2A4478;--gold:#FCB927;--cream:#C9D3E6;}
+  *{box-sizing:border-box}
+  html,body{height:100dvh;margin:0}
+  body{background:var(--navy);color:#fff;display:flex;flex-direction:column;
+       align-items:center;justify-content:center;gap:9px;padding:10px;
+       font:16px/1.4 "Trebuchet MS",Verdana,sans-serif;overflow:hidden;
+       -webkit-user-select:none;user-select:none;touch-action:manipulation}
+  .wrap{width:100%;max-width:min(560px, calc((100dvh - 168px) * 1.4));
+        display:flex;flex-direction:column;align-items:center;gap:8px}
+  h1{margin:0;font-size:clamp(20px,4.5vw,30px);color:var(--gold);letter-spacing:.5px}
+  .sub{margin:0;font-size:clamp(12px,2.4vw,14px);color:var(--cream);text-align:center}
+  canvas#fly{width:100%;aspect-ratio:7/5;display:block;border-radius:12px;
+             border:3px solid var(--navy3);image-rendering:pixelated;background:#4E7BC0}
+  .row{display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap}
+  .btn{font:inherit;font-weight:bold;background:var(--gold);color:#0B1730;border:0;
+       border-radius:9px;padding:10px 20px;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+  .btn:focus-visible{outline:3px solid #FFF6E0;outline-offset:2px}
+  .score{font-weight:bold;color:var(--gold);font-size:clamp(13px,2.6vw,16px);min-height:1.4em}
+  .picker{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  .pick{background:var(--navy2);border:2px solid var(--navy3);border-radius:9px;
+        padding:4px 5px 2px;cursor:pointer;text-align:center;color:var(--cream);
+        font:inherit;font-size:10px}
+  .pick.on{border-color:var(--gold);background:#24406F}
+  .pick canvas{display:block;width:36px;height:36px;image-rendering:pixelated}
+  .foot{font-size:11px;color:#8FA0C0;letter-spacing:1px;text-align:center}
+  @media (max-height:620px){ .picker{display:none} .sub{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Hawk Flight</h1>
+  <p class="sub">Tap, click or press space to flap. Get through the breezeway.</p>
+  <div class="picker" id="picker"></div>
+  <canvas id="fly" width="420" height="300"></canvas>
+  <div class="score" id="score">Pick your hawk, then flap to start.</div>
+  <div class="row">
+    <button class="btn" id="flap">Flap</button>
+    <button class="btn ghost" id="reset">Start over</button>
+    <button class="btn ghost" id="mute">Sound on</button>
+  </div>
+  <div class="foot">CORKSCREW MIDDLE SCHOOL &middot; RESPECTFUL &middot; RESPONSIBLE &middot; READY</div>
+</div>
+<script>
+"use strict";
+/* Hawk Flight, on its own. Same bird and the same breezeway as the version that
+   unlocks inside Hawk Quest when a student finds all fifteen coins, just lifted
+   out so it can be handed round by itself. Nothing here scores or makes a code. */
+const el=id=>document.getElementById(id);
+const OUT="#0B1730";
+const ART={hawkSideA:["................","......oooo......",".....oggggo.....","....ogbgggo.....","....ogggggrro...",".....oggggo.....","....oggggggo....","..ddogggggggo...","..ddogggggggo...","..ddogggggggo...","...oogggggggo...","....oggggggo....","....oggggggo....","....oooooooo....",".....pp..pp.....","....owwo.owwo..."],hawkSideB:["................","......oooo......",".....oggggo.....","....ogbgggo.....","....ogggggrro...",".....oggggo.....","...oddgggggo....","..oddoggggggo...","..oddoggggggo...","...oogggggggo...","....oggggggggo..","....oggggggo....","....oggggggo....","....oooooooo....","......pppp......",".....owwwwo....."],hawkA:["................","....o......o....","...oyo....oyo...","...oyggooggyo...","....oggggggo....","....oebggbeo....","....oggrrggo....",".....oggggo.....","..oo.oggggo.oo..",".oyddoggggoddyo.",".oyddoggggoddyo.","..oddoggggoddo..","....oggggggo....","....oggggggo....","....oooooooo....",".....tt..tt....."]};
+const FEATHERS={
+ gold:{g:"#FCB927",y:"#FFE08A",d:"#C68A0A",t:"#C68A0A"},
+ snow:{g:"#F2F4F8",y:"#FFFFFF",d:"#AEB9CC",t:"#C68A0A"},
+ night:{g:"#3E4A6B",y:"#7C8CB4",d:"#212B44",t:"#FCB927"},
+ copper:{g:"#C9713A",y:"#F0A468",d:"#8E4A22",t:"#F0A468"},
+ redtail:{g:"#8A5230",y:"#D9A06A",d:"#5E3419",t:"#C2452A"},
+ redshoulder:{g:"#B4552F",y:"#EBC08E",d:"#6E2F16",t:"#F0F2F6"},
+ shorttail:{g:"#4A5560",y:"#E8EDF4",d:"#2C343D",t:"#E8B54A"},
+ harrier:{g:"#93A2B5",y:"#E4EAF2",d:"#5A6675",t:"#E8B54A"}};
+const HAWKPICK=[
+ {k:"gold",nm:"CMS Gold"},
+ {k:"redtail",nm:"Red-tailed"},
+ {k:"redshoulder",nm:"Red-shouldered"},
+ {k:"shorttail",nm:"Short-tailed"},
+ {k:"harrier",nm:"Harrier"},
+ {k:"snow",nm:"Snowy"}];
+let pickedHawk="gold";
+function hawkPal(){const f=FEATHERS[pickedHawk]||FEATHERS.gold;
+  return{o:OUT,g:f.g,y:f.y,d:f.d,t:f.t,e:"#FFFFFF",b:"#0B1730",r:"#D65A2D"};}
+function blit(c,art,palette,X,Y,s,flip){
+  c.save();
+  if(flip){c.translate(X+16*s,Y);c.scale(-1,1);}else{c.translate(X,Y);}
+  for(let y=0;y<16;y++){const row=art[y];
+    for(let x=0;x<16;x++){const col=palette[row[x]];
+      if(col){c.fillStyle=col;c.fillRect(x*s,y*s,s,s);}}}
+  c.restore();
+}
+
+/* ---------- sound ---------- */
+let AC=null,muted=false;
+function ac(){
+  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){AC=false;}}
+  if(AC&&AC.state==="suspended")AC.resume();
+  return AC||null;
+}
+
+function blip(freq,dur,type,vol,delay,slideTo){
+  const c=ac();if(!c||muted)return;
+  const t0=c.currentTime+(delay||0);
+  const o=c.createOscillator(),g=c.createGain();
+  o.type=type||"square";o.frequency.setValueAtTime(freq,t0);
+  if(slideTo)o.frequency.exponentialRampToValueAtTime(Math.max(30,slideTo),t0+dur);
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol||0.09,t0+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+dur+0.03);
+}
+
+function noiseHit(dur,vol){
+  const c=ac();if(!c||muted)return;
+  const n=Math.floor(c.sampleRate*dur);
+  const b=c.createBuffer(1,n,c.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2.2);
+  const src=c.createBufferSource();src.buffer=b;
+  const g=c.createGain();g.gain.value=vol||0.15;
+  const f=c.createBiquadFilter();f.type="lowpass";f.frequency.value=1600;
+  src.connect(f);f.connect(g);g.connect(c.destination);src.start();
+}
+
+const SFX={
+  step(){blip(150,0.035,"square",0.022);},
+  bump(){blip(90,0.05,"square",0.03);},
+  talk(){blip(520,0.05,"square",0.05);blip(660,0.05,"square",0.05,0.05);},
+  good(){[660,880,1175].forEach((f,i)=>blip(f,0.13,"square",0.075,i*0.075));},
+  bad(){blip(240,0.16,"sawtooth",0.06);blip(170,0.22,"sawtooth",0.055,0.13);},
+  coin(){blip(1046,0.06,"square",0.06);blip(1568,0.11,"square",0.06,0.06);},
+  clear(){[523,659,784,1046].forEach((f,i)=>blip(f,0.16,"triangle",0.085,i*0.09));},
+  buy(){blip(784,0.07,"triangle",0.08);blip(1175,0.14,"triangle",0.08,0.07);},
+  bossGood(){[523,784,1046,1318].forEach((f,i)=>blip(f,0.15,"square",0.08,i*0.08));},
+  bossBad(){blip(320,0.34,"sawtooth",0.075,0,120);noiseHit(0.22,0.10);},
+  bell(){blip(880,0.5,"sine",0.07);blip(1320,0.55,"sine",0.05,0.04);},
+  boom(){noiseHit(0.30,0.16);blip(160,0.28,"sine",0.07,0,55);},
+  win(){[523,659,784,1046,1318,1568].forEach((f,i)=>blip(f,0.22,"triangle",0.09,i*0.11));}
+};
+function setMute(v){muted=v;el("mute").textContent=muted?"Sound off":"Sound on";}
+
+/* ---------- pick your hawk ---------- */
+function buildPicker(){
+  const box=el("picker");box.innerHTML="";
+  HAWKPICK.forEach(function(h){
+    const b=document.createElement("button");
+    b.className="pick"+(h.k===pickedHawk?" on":"");
+    b.type="button";
+    b.innerHTML='<canvas width="16" height="16"></canvas><span>'+h.nm+'</span>';
+    b.onclick=function(){pickedHawk=h.k;buildPicker();draw();};
+    box.appendChild(b);
+    const c=b.querySelector("canvas").getContext("2d");
+    const save=pickedHawk;pickedHawk=h.k;
+    blit(c,ART.hawkA,hawkPal(),0,0,1,false);
+    pickedHawk=save;
+  });
+}
+
+/* ---------- the flight ---------- */
+const W=420,H=300,HX=88;              /* the hawk holds this column */
+/* Drawn 32px, collides as a smaller box \u2014 it should never clip a pillar
+   it visibly cleared. */
+const HW=9,HH=10;
+let fly=null,raf=null,best=0;
+function start(){
+  fly={y:130,v:0,t:0,score:0,over:false,started:false,gates:[]};
+  for(let i=0;i<3;i++)
+    fly.gates.push({x:500+i*170,gap:118,cy:96+Math.random()*108,passed:false});
+}
+function draw(){
+  const c=el("fly").getContext("2d");
+  c.clearRect(0,0,W,H);
+  c.fillStyle="#4E7BC0";c.fillRect(0,0,W,H);
+  c.fillStyle="#6C95D2";c.fillRect(0,0,W,64);
+  fly.gates.forEach(function(g){
+    const top=g.cy-g.gap/2,bot=g.cy+g.gap/2;
+    [[0,top],[bot,H-bot]].forEach(function(seg){
+      const y=seg[0],h=seg[1];
+      if(h<=0)return;
+      c.fillStyle="#C9BFA6";c.fillRect(g.x,y,44,h);
+      c.fillStyle="#A89C80";c.fillRect(g.x+34,y,10,h);
+      c.fillStyle="#E2DAC6";c.fillRect(g.x,y,6,h);
+      c.strokeStyle="#6E644C";c.lineWidth=2;c.strokeRect(g.x+1,y,42,h);
+    });
+    c.fillStyle="#FCB927";
+    c.fillRect(g.x-4,top-10,52,10);c.fillRect(g.x-4,bot,52,10);
+    c.fillStyle="#14274E";
+    c.fillRect(g.x-4,top-10,52,2);c.fillRect(g.x-4,bot+8,52,2);
+  });
+  c.fillStyle="#3FAE6A";c.fillRect(0,H-16,W,16);
+  c.fillStyle="#2E8A52";c.fillRect(0,H-16,W,4);
+  c.fillStyle="rgba(11,23,48,.14)";c.fillRect(0,H-16,W,16);
+  const tilt=Math.max(-0.5,Math.min(0.8,fly.v/12));
+  c.save();c.translate(HX,fly.y);c.rotate(tilt);
+  blit(c,(fly.t%10<5)?ART.hawkSideA:ART.hawkSideB,hawkPal(),-16,-16,2,false);
+  c.restore();
+  c.textAlign="center";
+  c.font="bold 30px system-ui, sans-serif";
+  c.lineWidth=4;c.strokeStyle="#0B1730";
+  c.strokeText(String(fly.score),W/2,46);
+  c.fillStyle="#FCB927";c.fillText(String(fly.score),W/2,46);
+  if(!fly.started){
+    c.font="bold 13px system-ui, sans-serif";
+    c.lineWidth=4;c.strokeStyle="#0B1730";
+    c.strokeText("Tap, click or press space to flap",W/2,H/2+58);
+    c.fillStyle="#FFFFFF";c.fillText("Tap, click or press space to flap",W/2,H/2+58);
+  }
+  if(fly.over){
+    c.fillStyle="rgba(11,23,48,.72)";c.fillRect(0,0,W,H);
+    c.font="bold 22px system-ui, sans-serif";c.fillStyle="#FCB927";
+    c.fillText("Down you go",W/2,H/2-10);
+    c.font="bold 13px system-ui, sans-serif";c.fillStyle="#EDEDED";
+    c.fillText("You got through "+fly.score+(fly.score===1?" gap":" gaps")+
+               (best?"  \u00b7  best "+best:""),W/2,H/2+16);
+    c.fillText("Flap to go again",W/2,H/2+38);
+  }
+  c.textAlign="left";
+}
+function step(){
+  if(fly.started&&!fly.over){
+    fly.t++;
+    fly.v+=0.52;fly.y+=fly.v;
+    fly.gates.forEach(function(g){
+      g.x-=2.6;
+      if(!g.passed&&g.x+44<HX){g.passed=true;fly.score++;SFX.coin();}
+      if(g.x<-60){
+        g.x=Math.max.apply(null,fly.gates.map(function(k){return k.x;}))+170;
+        g.cy=90+Math.random()*120;g.passed=false;
+        g.gap=Math.max(86,118-fly.score*1.6);          /* tightens as you go */
+      }
+      if(HX+HW>g.x&&HX-HW<g.x+44&&(fly.y-HH<g.cy-g.gap/2||fly.y+HH>g.cy+g.gap/2))end();
+    });
+    if(fly.y<HH+2){fly.y=HH+2;fly.v=0;}                    /* the ceiling is not fatal */
+    if(fly.y>288-HH)end();
+  }
+  draw();
+  el("score").textContent = fly.over
+    ? "Flap to go again."
+    : (fly.started ? "Gaps cleared: "+fly.score+(best?"  \u00b7  best "+best:"")
+                   : "Flap to start."+(best?"  Best so far: "+best:""));
+  raf=requestAnimationFrame(step);
+}
+function end(){
+  if(fly.over)return;
+  fly.over=true;SFX.bad();
+  best=Math.max(best,fly.score);
+}
+function flap(){
+  ac();
+  if(fly.over){start();fly.started=true;fly.v=-7.4;SFX.step();return;}
+  if(!fly.started)fly.started=true;
+  fly.v=-7.4;SFX.step();
+}
+el("flap").onclick=flap;
+el("mute").onclick=function(){setMute(!muted);if(!muted){ac();SFX.coin();}};
+el("reset").onclick=function(){start();draw();
+  el("score").textContent="Flap to start."+(best?"  Best so far: "+best:"");};
+el("fly").addEventListener("click",flap);
+el("fly").addEventListener("touchstart",function(e){e.preventDefault();flap();},{passive:false});
+document.addEventListener("keydown",function(e){
+  if(e.key==="m"||e.key==="M"){setMute(!muted);return;}
+  if(e.key===" "||e.key==="Spacebar"||e.key==="ArrowUp"||e.key==="Enter"){
+    e.preventDefault();flap();}
+});
+buildPicker();start();step();
+</script>
+</body>
+</html>
