@@ -23,7 +23,7 @@ and the link works.
    branch**, Branch = **main**, folder = **/ (root)**. Save.
 4. Wait a minute or two. Your link is:
 
-       https://YOURNAME.github.io/hawkquest/
+       https://burtcj.github.io/hawkquest/
 
    Replace `YOURNAME` with your GitHub username.
 
