@@ -150,6 +150,20 @@
   .duo{display:flex;gap:12px;align-items:center}
   .duo canvas{width:80px;height:80px;border-radius:11px;background:#2A4478;border:2px solid var(--navy3);
     image-rendering:pixelated;flex:none}
+  .lb{display:flex;flex-direction:column;gap:4px;margin:8px 0 2px;
+      background:var(--navy2);border:2px solid var(--navy3);border-radius:11px;padding:8px 9px}
+  .lbHead{font-size:clamp(11px,2vw,13px);color:var(--gold);font-weight:bold;letter-spacing:1px;
+      text-align:left;padding:0 4px 3px}
+  .lbRow{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:7px;
+      font-size:clamp(12px,2.2vw,15px)}
+  .lbRow.me{background:var(--gold);color:#0B1730;font-weight:bold}
+  .lbPos{width:1.7em;text-align:right;color:#8FA0C0;font-weight:bold;flex:none}
+  .lbRow.me .lbPos{color:#0B1730}
+  .lbTag{flex:1;text-align:left;letter-spacing:1px}
+  .lbScore{font-weight:bold;flex:none}
+  .lbNote{font-size:clamp(10px,1.8vw,12px);color:#8FA0C0;text-align:left;padding:3px 4px 0}
+  .credits{font-size:clamp(10px,1.9vw,13px);color:#8FA0C0;line-height:1.5;margin-top:8px;
+    padding-top:8px;border-top:2px solid var(--navy3);flex:none}
   .admins{display:flex;flex-direction:column;gap:9px;margin-top:2px}
   .adm{display:flex;gap:11px;align-items:center;text-align:left;background:var(--navy2);
     border:2px solid var(--navy3);border-radius:11px;padding:9px 11px}
@@ -299,7 +313,7 @@
       <div class="how">
         <div><b>Talk to everyone</b>Right answers earn points. Wrong ones still show you the rule.</div>
         <div><b>Move</b>Each stage gives you plenty of steps. Explore and find the coins, but be timely &mdash; there is no time to waste at CMS.</div>
-        <div><b>Collect</b><span id="coinBlurb">Hawk coins</span>Worth zero points. Find every one and <b>Hawk Flight</b> opens up at the end of your run.</div>
+        <div><b>Collect</b><span id="coinBlurb">Hawk coins</span>Worth zero points. Find every one and a <b>bonus game</b> opens up at the end of your run.</div>
         <div><b>Shop</b>Try things on your Hawk after every stage, cape and mask included. Spending never lowers your points.</div>
       </div>
       <div class="pickWrap">
@@ -354,13 +368,27 @@
 
     <div class="panel center" id="flyPanel" hidden>
       <div class="title" style="font-size:22px">Hawk Flight</div>
-      <p class="lede" id="flyLede">Tap, click or press space to flap. Get through the breezeway.</p>
+      <p class="lede" id="flyLede" style="margin:2px 0">Tap, click or press space to flap.</p>
       <canvas id="flyCv" width="420" height="300"
-              style="width:100%;max-width:520px;border-radius:10px;image-rendering:pixelated;
-                     border:3px solid #2A4478;margin:6px auto;display:block;touch-action:manipulation"></canvas>
+              style="width:100%;max-width:360px;border-radius:10px;image-rendering:pixelated;
+                     border:3px solid #2A4478;margin:3px auto;display:block;touch-action:manipulation"></canvas>
       <div class="hint" id="flyScore"></div>
+      <div class="lb" style="max-width:360px;margin:3px auto 0;padding:6px 8px">
+        <div class="lbHead">Longest flights</div>
+        <div id="lbFlight"></div>
+      </div>
       <div class="row"><button class="btn" id="flyBtn">Flap</button>
         <button class="btn ghost sm" id="flyDone">Done</button></div>
+    </div>
+
+    <div class="panel center" id="hawkmanPanel" hidden>
+      <div class="hint" id="hmTag" style="letter-spacing:2px;margin:0">Something is back here</div>
+      <canvas id="hmCv" width="320" height="200"
+              style="width:100%;max-width:268px;border-radius:10px;image-rendering:pixelated;
+                     border:3px solid #2A4478;margin:3px auto;display:block"></canvas>
+      <div class="lede" id="hmSay" style="margin:2px 0"></div>
+      <div class="opts" id="hmOpts"></div>
+      <div class="row"><button class="btn ghost sm" id="hmLeave">Back away quietly</button></div>
     </div>
 
     <div class="panel center" id="cardPanel" hidden>
@@ -509,11 +537,18 @@
         <img src="" id="endArt" alt="" style="width:54px;height:auto;border-radius:8px"></div>
       <div class="row" style="flex:none">
         <div class="code" id="scoreCode" tabindex="0">HAWK-....-....</div>
-        <button class="btn sm" id="copyBtn">Copy code</button>
+        <button class="btn sm" id="copyBtn">Copy code and open the form</button>
       </div>
-      <p class="note" id="copyNote" style="flex:none">Your teacher has a link to a form. Put your <b>first and last name</b> on it and paste this code in.</p>
+      <p class="note" id="copyNote" style="flex:none">Put your <b>first and last name</b> on the form and paste this code in.</p>
+      <p class="note" style="flex:none"><a id="formLink" href="https://forms.cloud.microsoft/r/PYG5FgX1iS" target="_blank" rel="noopener"
+         style="color:var(--gold)">Open the drawing form</a> if it does not open on its own.</p>
       <div id="endScroll">
         <div class="lede" id="finalScore"></div>
+        <div class="lb">
+          <div class="lbHead">Top Hawks this weekend</div>
+          <div id="lbQuest"></div>
+          <div class="lbNote">Prizes are drawn at random from the codes sent in, not from this board.</div>
+        </div>
         <div class="admins" id="admins"></div>
       </div>
       <div class="row">
@@ -521,6 +556,7 @@
         <button class="btn ghost sm" id="cardBtn">See my Hawk Card</button>
         <button class="btn ghost sm" id="againBtn">Back to the start</button>
       </div>
+      <div class="credits">Hawk Quest &mdash; game made by Mr. Burtch,<br>with support from Corkscrew Middle School</div>
     </div>
   </div>
 
@@ -628,7 +664,9 @@ function windowCheck(){
    wins, so clearing one does not reset it. A student who clears everything, or
    opens a private window, gets a fresh count — the real check is the score code
    itself, which carries their initials. */
-const MAX_PLAYS=PREVIEW?9999:2;
+/* No cap on runs. The weekend window is the only limit \u2014 if a student wants
+   to play it ten times between Friday and Monday, good. */
+const MAX_PLAYS=Infinity;
 const PLAYKEY="hawkquest.plays.20260824";
 /* Hawk Flight is earned once, by finding all fifteen coins, and after that it is
    theirs to replay as often as they like for the rest of the weekend. The
@@ -668,12 +706,9 @@ function usePlay(){
   cookieSet(PLAYKEY,n);
 }
 function playsLine(){
-  if(PREVIEW)return "Preview build \u2014 the weekend window and the two-play limit are switched off. The tamper guard is still on.";
-  if(TEACHER_MODE)return "Teacher mode — plays are not counted.";
-  const left=playsLeft();
-  if(left<=0)return "You have used both of your plays.";
-  if(left===1)return "This is your second and last play.";
-  return "You get two plays. This is your first.";
+  if(PREVIEW)return "Preview build \u2014 the weekend window is switched off. The tamper guard is still on.";
+  if(TEACHER_MODE)return "Teacher mode.";
+  return "Play as many times as you like this weekend. Your best code is the one to send in.";
 }
 
 /* ---------- RUN GUARD ----------
@@ -2119,7 +2154,7 @@ function pay(n,label){
 }
 function say(h){const b=el("banner");b.innerHTML=h;b.hidden=false;
   clearTimeout(say.t);say.t=setTimeout(()=>b.hidden=true,2500);}
-function hideAll(){["titlePanel","tamperPanel","newsPanel","cleanPanel","flyPanel","cardPanel","askPanel","shopPanel","suitPanel","briefPanel","bossPanel","celebPanel","endPanel","hawkCard","lostPanel","ackPanel"].forEach(p=>el(p).hidden=true);
+function hideAll(){["titlePanel","tamperPanel","newsPanel","cleanPanel","flyPanel","hawkmanPanel","cardPanel","askPanel","shopPanel","suitPanel","briefPanel","bossPanel","celebPanel","endPanel","hawkCard","lostPanel","ackPanel"].forEach(p=>el(p).hidden=true);
   const pc=el("pace");if(pc)pc.hidden=true;
   const td=el("todo");if(td)td.hidden=true;}   /* map-only, never over a panel */
 
@@ -2559,7 +2594,10 @@ function move(dx,dy){
         :"Talk to everybody here first.");}
     return;}
   if(solid(ch)){SFX.bump();return;}
-  px=nx;py=ny;step=3;steps++;totalSteps++;GUARD.sync();paintClock();if(tick%2===0)SFX.step();
+  px=nx;py=ny;step=3;steps++;totalSteps++;GUARD.sync();paintClock();
+  if(!hawkSeen&&R()&&R().id===HM_TILE.room&&px===HM_TILE.x&&py===HM_TILE.y){
+    setTimeout(hmOpen,220);return;
+  }if(tick%2===0)SFX.step();
   paceCheck();passCheck();
   if(R()&&R().lunch&&thrown&&!dismissed&&!onSeat()&&steps%9===0)
     say("Back to your seat until your table is dismissed.");
@@ -3304,7 +3342,7 @@ el("cleanCv").addEventListener("touchstart",e=>{e.preventDefault();cleanHit(e);}
 /* The bird is drawn 32px but collides as a smaller box, the way these games
    always do \u2014 it should never clip a pillar it visibly cleared. */
 const HW=11,HH=13;
-let fly=null,flyRAF=null,flyBest=0;
+let fly=null,flyRAF=null,flyBest=0,flyShown=-1;
 function flyStart(){
   fly={y:130,v:0,t:0,gates:[],score:0,over:false,started:false};
   /* the first one sits further out so there is a second to get your bearings */
@@ -3387,6 +3425,12 @@ function flyStep(){
   flyDraw();
   el("flyScore").textContent=fly.over?"Flap to go again, or press Done."
     :(fly.started?"Gaps cleared: "+fly.score:"Every one of the 15 coins bought you this.");
+  const ld=el("flyLede");if(ld)ld.hidden=fly.started;
+  if(fly.score!==flyShown){
+    flyShown=fly.score;
+    try{paintBoard(el("lbFlight"), flightBoard(),
+                   {tag:(ident.ini||"YOU"),score:Math.max(fly.score,flyBest)}, "gaps", 3);}catch(e){}
+  }
   flyRAF=requestAnimationFrame(flyStep);
 }
 function flyEnd(){
@@ -3402,7 +3446,7 @@ function flyFlap(){
 }
 let flyFrom="end";
 function openFly(){
-  mode="fly";hideAll();
+  mode="fly";hideAll();flyShown=-1;
   el("flyPanel").hidden=false;
   flyStart();
   cancelAnimationFrame(flyRAF);flyStep();
@@ -3422,6 +3466,188 @@ el("flyDone").onclick=()=>{
     mode="end";el("endPanel").hidden=false;
   }
 };
+
+
+/* ================= THE BOARD =================
+   A standing high-score table so a run has something to measure itself against.
+   The other names are not real students \u2014 they are a fixed list built from a
+   fixed seed, so every Hawk sees the same board and two friends sitting next to
+   each other see the same names. Your own row is worked out honestly: your score
+   is slotted into the list where it actually falls, so playing better really does
+   move you up. Nothing here feeds the prize drawing, which is drawn at random
+   from the codes that come in on the form. */
+const BOARD_TAGS=["JRM","TKB","ALC","MSD","DVP","KJH","RNS","BWT","CEM","LGR",
+                  "AJP","TMS","NHW","QDL","SRK","EBC","MJT","PVA","HKD","ZLR",
+                  "OCN","FTM","WSB","IRP","YGC","DKA","LMV","CRT","NBS","JQE"];
+function seedRand(seed){                    /* same board on every device */
+  let s=seed>>>0;
+  return function(){ s=(Math.imul(s,1664525)+1013904223)>>>0; return s/4294967296; };
+}
+function buildBoard(seed,count,lo,hi,shape){
+  const r=seedRand(seed),out=[];
+  const used={};
+  for(let i=0;i<count;i++){
+    let t;
+    do{ t=BOARD_TAGS[Math.floor(r()*BOARD_TAGS.length)]; }while(used[t]);
+    used[t]=1;
+    /* bunch the scores near the middle and thin them out at the top */
+    const a=r(),b=r(),bell=(a+b)/2;
+    const v=Math.round(lo+(hi-lo)*Math.pow(bell,shape));
+    out.push({tag:t,score:v});
+  }
+  return out.sort((x,y)=>y.score-x.score);
+}
+/* Painted into any element: the board plus your row, in order. */
+function paintBoard(host,rows,me,unit,limit){
+  const N=limit||5;
+  const all=rows.concat([me]).sort((a,b)=>b.score-a.score);
+  const myIdx=all.indexOf(me);
+  /* Keep it short enough to read without scrolling: the top of the board, and
+     your own row wherever it actually landed. */
+  let show=all.slice(0,N);
+  if(myIdx>=N){show=all.slice(0,N-1);show.push(all[myIdx]);}
+  host.innerHTML=show.map(r=>{
+    const place=all.indexOf(r)+1;
+    const mine=(r===me);
+    return '<div class="lbRow'+(mine?" me":"")+'">'
+      +'<span class="lbPos">'+place+'</span>'
+      +'<span class="lbTag">'+r.tag+(mine?" \u2190 you":"")+'</span>'
+      +'<span class="lbScore">'+r.score+(unit?" "+unit:"")+'</span></div>';
+  }).join("");
+}
+/* Run scores. Seeded once so the board holds still all weekend. */
+function questBoard(){return buildBoard(20260821,14,210,565,0.85);}
+function flightBoard(){return buildBoard(19860824,14,4,34,0.9);}
+
+
+/* ================= THE THING BEHIND THE TRASH CANS =================
+   An unmarked tile in the far corner of B lunch. Nothing on the map points at
+   it \u2014 you only find it by wandering somewhere you had no reason to go.
+   Catch what is back there and your score code comes out different, which is
+   the whole point: it is a thing you can show people. */
+const HM_TILE={room:"blunch",x:19,y:8};
+let hawkSeen=false,caughtHawk=false,hmCalm=0,hmTurns=0,hmDone=false,hmRAF=null,hmF=0;
+
+function hmPal(){                       /* brighter than any hawk you can buy */
+  return {o:OUT,g:"#FFD34D",y:"#FFF3C4",d:"#B8860B",t:"#FF7A1A",
+          e:"#FFFFFF",b:"#0B1730",r:"#D65A2D"};
+}
+function drawHawkman(){
+  const c=el("hmCv").getContext("2d"),W=320,H=200;
+  hmF++;
+  c.clearRect(0,0,W,H);
+  /* the dim corner behind the cans */
+  c.fillStyle="#101C33";c.fillRect(0,0,W,H);
+  c.fillStyle="#16243F";c.fillRect(0,H-52,W,52);
+  c.fillStyle="#0B1730";c.fillRect(0,H-52,W,3);
+  for(let i=0;i<3;i++){                 /* trash cans, in silhouette */
+    const x=18+i*34;
+    c.fillStyle="#1B2B49";c.fillRect(x,H-96,26,44);
+    c.fillStyle="#22355A";c.fillRect(x-3,H-100,32,7);
+  }
+  const bob=Math.round(Math.sin(hmF/9)*3);
+  const s=7, ox=(W-16*s)/2+34, oy=H-16*s-26+bob;
+  c.fillStyle="rgba(0,0,0,.35)";
+  c.beginPath();c.ellipse(ox+8*s,H-24,34,8,0,0,6.3);c.fill();
+  blit(c,(hmF%16<8)?ART.hawkA:ART.hawkB,hmPal(),ox,oy,s,false);
+  /* a couple of gold motes so it reads as special */
+  for(let i=0;i<5;i++){
+    const a=(hmF/22)+i*1.26;
+    c.fillStyle="rgba(252,185,39,"+(0.35+0.3*Math.sin(hmF/8+i))+")";
+    c.fillRect(ox+8*s+Math.cos(a)*54-2, oy+8*s+Math.sin(a)*34-2, 4,4);
+  }
+  /* the calm meter, drawn like a health bar */
+  c.fillStyle="#0B1730";c.fillRect(14,14,W-28,16);
+  c.fillStyle="#2A4478";c.fillRect(16,16,W-32,12);
+  c.fillStyle=hmCalm>=70?"#3FAE6A":(hmCalm>=40?"#FCB927":"#D6483B");
+  c.fillRect(16,16,Math.round((W-32)*Math.max(0,Math.min(100,hmCalm))/100),12);
+  c.font="bold 10px system-ui, sans-serif";c.fillStyle="#C9D3E6";c.textAlign="left";
+  c.fillText("HAWKMAN",16,44);
+  c.textAlign="right";c.fillText("calm "+Math.round(hmCalm)+"%",W-16,44);
+  c.textAlign="left";
+}
+function hmLoop(){ if(mode!=="hawkman")return; drawHawkman(); hmRAF=requestAnimationFrame(hmLoop); }
+
+function hmOpen(){
+  hawkSeen=true;hmCalm=12;hmTurns=0;hmDone=false;
+  mode="hawkman";stopClock();releaseHeld();hideAll();
+  el("hawkmanPanel").hidden=false;
+  el("hmSay").innerHTML="Something in the corner looks up at you. <b>It is enormous.</b>";
+  cancelAnimationFrame(hmRAF);hmLoop();
+  hmButtons();
+}
+function hmButtons(){
+  const box=el("hmOpts");box.innerHTML="";
+  if(hmDone)return;
+  const acts=[
+    ["Say good morning to it", hmTalk],
+    ["Hold still and wait",    hmWait],
+    ["Offer a Hawk Dollar"+(wallet>=10?" (10 HD)":" \u2014 you need 10 HD"), hmFeed],
+    ["Reach out for it",       hmCatch]
+  ];
+  acts.forEach(([label,fn])=>{
+    const b=document.createElement("button");
+    b.className="opt";b.type="button";b.textContent=label;
+    b.onclick=fn;box.appendChild(b);
+  });
+}
+function hmAfter(msg){
+  hmTurns++;
+  el("hmSay").innerHTML=msg;
+  if(hmDone)return;
+  if(hmTurns>=7){                      /* it will not wait around forever */
+    hmDone=true;
+    el("hmSay").innerHTML=msg+"<br><b>It has had enough of you.</b> It goes up over the "
+      +"roofline and it is gone.";
+    hmButtons();
+    setTimeout(hmClose,2100);
+    return;
+  }
+  hmButtons();
+}
+function hmTalk(){
+  SFX.talk();
+  hmCalm+=(hmCalm<50?22:12);
+  hmAfter("You say good morning, quiet voice, no sudden moves. It tilts its head at you.");
+}
+function hmWait(){
+  SFX.step();
+  hmCalm+=16;
+  hmAfter("You stand still and let it look at you. Its shoulders come down a little.");
+}
+function hmFeed(){
+  if(wallet<10){SFX.bad();hmAfter("You go for your pocket and there is nothing in it.");return;}
+  wallet-=10;SFX.coin();
+  hmCalm+=30;
+  hmAfter("You put a Hawk Dollar down on the tile and step back. It hops forward and takes it.");
+}
+function hmCatch(){
+  /* Calm him properly and he is yours \u2014 one attempt per run is enough
+     punishment without a dice roll taking it off a student who did it right. */
+  const odds=Math.max(0,Math.min(96,hmCalm));
+  if(hmCalm>=85||Math.random()*100<odds){
+    hmDone=true;caughtHawk=true;flash=16;SFX.win();
+    el("hmTag").textContent="You caught him";
+    el("hmSay").innerHTML="<b>Hawkman lets you pick him up.</b> He is heavier than he looks.<br>"
+      +"Your score code comes out different now.";
+    pay(50,"you caught Hawkman");
+    hmButtons();
+    setTimeout(hmClose,3400);
+  } else {
+    SFX.bad();
+    hmCalm=Math.max(0,hmCalm-18);
+    hmAfter("You reach and he is not having it \u2014 one wingbeat and he is back on the can lid, "
+      +"watching you. <b>Calm him down first.</b>");
+  }
+}
+function hmClose(){
+  cancelAnimationFrame(hmRAF);hmRAF=null;
+  mode="map";hideAll();startClock();hud();render();
+  el("hud").hidden=false;el("pad").hidden=!("ontouchstart" in window);
+  say(caughtHawk?"You have Hawkman. Get on with your day like nothing happened."
+                :"Whatever that was, it is gone. Back to lunch.");
+}
+el("hmLeave").onclick=()=>{hmDone=true;hmClose();};
 
 /* ================= BOSS ================= */
 function spiralTo(fn){
@@ -3653,10 +3879,13 @@ function makeCode(){
   const rg=Math.min(rights,31),ms=Math.min(misses,7),st=Math.min(best,31);
   const cn=Math.min(coins,15);
   const n=(((((c*2048+t)*32+rg)*8+ms)*32+st)*16+cn);
-  const chk=(n+identVal())%31;
+  /* Catching Hawkman changes the code in two ways: the prefix reads HAWKMAN
+     instead of HAWK, and the same fact is folded into the checksum. So a student
+     who just types HAWKMAN over the front of their code fails to verify. */
+  const chk=(n+identVal()+(caughtHawk?17:0))%31;
   let v=n*32+chk,out="";
   for(let i=0;i<9;i++){out=ALPH[v%32]+out;v=Math.floor(v/32);}
-  return "HAWK-"+identTag()+out.slice(0,4)+"-"+out.slice(4);
+  return (caughtHawk?"HAWKMAN-":"HAWK-")+identTag()+out.slice(0,4)+"-"+out.slice(4);
 }
 
 /* ================= CHECKPOINT ================= */
@@ -3691,7 +3920,8 @@ function saveGame(at){
     earned:earned,wallet:wallet,coins:coins,misses:misses,rights:rights,
     streak:streak,best:best,picks:picks,totalSteps:totalSteps,believe:believe,
     superSuit:superSuit,fpDone:FP.done,hawk:pickedHawk,hasPass:hasPass,sentBack:sentBack,returning:returning,
-    askedBathroom:askedBathroom,usedRestroom:usedRestroom,ident:ident,own:own,eq:eq,tools:tools,
+    askedBathroom:askedBathroom,usedRestroom:usedRestroom,
+    hawkSeen:hawkSeen,caughtHawk:caughtHawk,ident:ident,own:own,eq:eq,tools:tools,
     missed:missed,flags:flagsOf(),sig:sign([earned,wallet,coins,misses,rights,best,totalSteps,roomIdx])}));}catch(e){}
 }
 function loadGame(){
@@ -3724,6 +3954,7 @@ function resume(){
   totalSteps=d.totalSteps;believe=d.believe;superSuit=!!d.superSuit;FP.done=!!d.fpDone;fpReset();
   hasPass=!!d.hasPass;sentBack=!!d.sentBack;returning=!!d.returning;
   askedBathroom=!!d.askedBathroom;usedRestroom=!!d.usedRestroom;
+  hawkSeen=!!d.hawkSeen;caughtHawk=!!d.caughtHawk;
   ident={ini:(d.ident&&d.ident.ini)||""};   /* old saves carried a period; drop it */
   pickedHawk=d.hawk||pickedHawk;
   own=d.own||{};eq=d.eq||eq;tools=d.tools||{hint:0,renn:0};missed=d.missed||[];
@@ -3882,6 +4113,7 @@ function showResults(rank,note,w){
   el("rank").textContent=rank;
   el("finalScore").innerHTML="<b>"+earned+" points</b> &middot; "+rights+" of "+totalQ+" right &middot; "+
     totalSteps+" steps &middot; best streak "+best+" &middot; he convinced "+believePct()+"% of the room"+
+    (caughtHawk?"<br><b>You caught Hawkman.</b> That is why your code says HAWKMAN.":"")+
     "<br><b>Hawk coins "+coins+" of "+coinTotal+"</b>"+(superSuit?" &middot; <b>Super Hawk Suit</b>":"")+(coins===coinTotal?" &mdash; you found every one":"")+
     (w.length?"<br>Wearing: "+w.join(", "):"");
   if(!TEACHER_MODE&&!PREVIEW&&(!clockOK||nowReal()<OPEN_AT||nowReal()>=CLOSE_AT)){
@@ -3889,6 +4121,12 @@ function showResults(rank,note,w){
     el("copyNote").textContent="This run finished outside Hawk Quest Weekend, so there is no code for it.";
     return;
   }
+  bgmPlay();                       /* music returns over the closing screen */
+  syncFormLink();
+  try{
+    paintBoard(el("lbQuest"), questBoard(),
+               {tag:(ident.ini||"YOU"),score:earned}, "pts");
+  }catch(e){}
   const allCoins=(coins>=coinTotal);
   if(allCoins)unlockFlight();
   el("flyOpen").hidden=!allCoins;
@@ -3943,6 +4181,7 @@ function start(){
   seated=false;hasTray=false;ate=false;thrown=false;dismissed=false;called=0;tCalled=0;satAfter=false;
   clearInterval(callTimer);callTimer=null;clearInterval(dumpTimer);dumpTimer=null;
   clearInterval(tossTimer);tossTimer=null;autoEscort=false;
+  hawkSeen=false;caughtHawk=false;
   cancelAnimationFrame(flyRAF);flyRAF=null;
   cut=null;
   roomIdx=(PART===2?5:0);                    /* part 2 picks up at B lunch */
@@ -3965,8 +4204,28 @@ function start(){
   if(PART===2){enterRoom();return;}          /* no bus ride at lunch */
   busIntro();
 }
+/* ---------- THE FORM ----------
+   One button: it copies the code and opens the drawing form in a new tab, so a
+   student never has to go hunting for the link with a code sitting in their
+   clipboard. Two things to know if you edit this:
+     - the window is opened FIRST, before the copy. The clipboard call is async,
+       and once you have awaited it the browser no longer counts the click as a
+       user gesture, so the tab gets blocked as a popup.
+     - if the school blocks the popup anyway, the link under the button still
+       works, and the code is already copied either way.
+   FORM_PREFILL: paste a Microsoft Forms pre-filled URL here and the code will be
+   typed into the form for them. Leave it empty and the plain form link is used. */
+const FORM_URL="https://forms.cloud.microsoft/r/PYG5FgX1iS";
+const FORM_PREFILL="";
+function formLink(code){
+  if(!FORM_PREFILL)return FORM_URL;
+  return FORM_PREFILL.replace(/CODEHERE/g, encodeURIComponent(code));
+}
 el("copyBtn").onclick=async()=>{
   const txt=el("scoreCode").textContent.trim();
+  /* opened before the await, or the browser treats it as a popup */
+  let win=null;
+  if(/^HAWK-[A-Z]/.test(txt)){try{win=window.open(formLink(txt),"_blank","noopener");}catch(e){}}
   let ok=false;
   try{await navigator.clipboard.writeText(txt);ok=true;}catch(e){}
   if(!ok){
@@ -3981,9 +4240,15 @@ el("copyBtn").onclick=async()=>{
     const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);
     el("copyNote").textContent="Your browser blocked the copy. It's selected now — press Ctrl+C or Cmd+C.";
   }
-  el("copyBtn").textContent=ok?"Copied":"Selected";
-  setTimeout(()=>{el("copyBtn").textContent="Copy code";},1900);
+  el("copyBtn").textContent=ok?"Copied \u2014 form opening":"Selected";
+  if(!win&&ok)el("copyNote").textContent="Code copied. Your browser blocked the new tab \u2014 use the form link below.";
+  setTimeout(()=>{el("copyBtn").textContent="Copy code and open the form";},2600);
 };
+function syncFormLink(){
+  const a=el("formLink");if(!a)return;
+  const code=(el("scoreCode").textContent||"").trim();
+  a.href=/^HAWK-[A-Z]/.test(code)?formLink(code):FORM_URL;
+}
 el("scoreCode").onclick=()=>{
   const r=document.createRange();r.selectNodeContents(el("scoreCode"));
   const sel=window.getSelection();sel.removeAllRanges();sel.addRange(r);
@@ -4062,17 +4327,9 @@ function refreshPlays(){
   if(!gateCheck()){if(note)note.hidden=true;return;}
   const left=playsLeft();
   if(note){note.textContent=playsLine();note.hidden=false;}
-  if(left<=0){
-    el("startBtn").dataset.locked="1";
-    el("startBtn").disabled=true;
-    el("gateMsg").textContent="That was both of your plays. The code from your best run is the one to put in the form."
-      +(flightUnlocked()?" Hawk Flight stays open \u2014 play it as much as you like until the game closes.":"");
-    el("gateMsg").hidden=false;
-  } else {
-    el("startBtn").dataset.locked="0";
-    el("gateMsg").hidden=true;
-    syncStart();
-  }
+  el("startBtn").dataset.locked="0";
+  el("gateMsg").hidden=true;
+  syncStart();
 }
 setInterval(()=>{ if(!TEACHER_MODE&&!PREVIEW)readServerTime().catch(()=>{}); },120000);
 /* The window can close mid-run on Monday morning. Check it while they play. */

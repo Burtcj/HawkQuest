@@ -25,16 +25,13 @@ and the link works.
 
        https://burtcj.github.io/hawkquest/
 
-   Replace `YOURNAME` with your GitHub username.
-
-5. Open that link and check the title screen loads and the music starts when you
-   tap. Then send me the real address and I will put it into the flier, the
-   PowerPoint slide and the Canvas ad.
+   5. Open that link and check the title screen loads and the music starts when you
+   tap.
 
 ## Before it goes to students
 
 - **Put the real link in three places:** the Canvas ad, the flier, and slide 31
-  of the Hawk Expectations deck. They currently read `YOURNAME.github.io/hawkquest`.
+  of the Hawk Expectations deck. All three already read `burtcj.github.io/hawkquest`.
 - **The Microsoft Form needs a grade-level question**, or the codes cannot be
   sorted into the three drawings.
 - **The form also needs a 1st period teacher and 7th period teacher field**
@@ -43,6 +40,27 @@ and the link works.
 - **Update your Hawk Code Reader.** Codes now read `HAWK-<initials>-XXXX-XXXXX`
   with no period digit, and the checksum covers the initials only. Reader needs
   the period digit removed from the prefix and from `identVal`.
+
+
+## The secret in the cafeteria
+
+There is an unmarked tile in the far corner of B lunch, past the trash cans.
+Nothing on the map points at it. A student who wanders over there meets
+**Hawkman** and can try to catch him: calm him down first (talk to him, hold
+still, offer a Hawk Dollar), then reach out. Grab too early and he shrugs you
+off. One encounter per run.
+
+Catch him and the score code comes out as **HAWKMAN-JB-XXXX-XXXXX** instead of
+**HAWK-JB-XXXX-XXXXX**, so you can spot it at a glance in the form responses.
+
+**Your Hawk Code Reader needs to know about this**, or those codes will fail to
+verify. Two changes:
+
+- accept `HAWKMAN` as well as `HAWK` at the front of the code
+- when the prefix is `HAWKMAN`, add 17 to the checksum sum before taking `% 31`
+
+That second part is deliberate. It means a student who just types HAWKMAN over
+the front of an ordinary code fails verification.
 
 ## Changing the play window
 
@@ -63,7 +81,7 @@ is deliberate — it stops a student saving the file and playing it offline late
 
 Add `?teacher` to the end of the address:
 
-    https://YOURNAME.github.io/hawkquest/?teacher
+    https://burtcj.github.io/hawkquest/?teacher
 
-That skips the window and the two-play limit, and turns on the skip keys —
+That skips the weekend window and turns on the skip keys —
 `]` jumps to the next stage, `\` jumps to the end.
