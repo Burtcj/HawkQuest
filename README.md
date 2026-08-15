@@ -9,7 +9,6 @@ and the link works.
 |---|---|
 | `index.html` | Hawk Quest. This is the student link. |
 | `flight.html` | Hawk Flight on its own, if you ever want it separately. |
-| `preview.html` | Same game with the weekend window and play limit switched off, for testing. **Do not give this to students.** |
 | `assets/title-music.mp3` | Plays on the title screen only. |
 | `.nojekyll` | Tells GitHub to serve the files as-is. Leave it there. |
 
@@ -77,11 +76,31 @@ device, so a student changing the clock on their phone gets nowhere. That check
 needs the page to be online: if it cannot reach the server it will not open, which
 is deliberate — it stops a student saving the file and playing it offline later.
 
-## Teacher link
+## Testing it before Friday
 
-Add `?teacher` to the end of the address:
+The student link is shut until 3:50 on the 21st, so you need a way in to check
+it works. Add the password to the end of the address:
 
-    https://burtcj.github.io/hawkquest/?teacher
+    https://burtcj.github.io/hawkquest/?key=hawks26        play it any time
+    https://burtcj.github.io/hawkquest/?teacher=hawks26    the same, plus skip keys
 
-That skips the weekend window and turns on the skip keys —
-`]` jumps to the next stage, `\` jumps to the end.
+With the skip keys on, `]` jumps to the next stage and `\` jumps straight to the
+end, which is the quick way to check the closing screen.
+
+**Runs opened either way produce a code beginning `TEST-` instead of `HAWK-`.**
+That is deliberate. It means a staff test can never be mistaken for a student
+entry when you sort the form, and it means it does not much matter if a student
+works out the password — the worst they get is a code that is obviously not an
+entry. A gold banner also sits on the title screen so nobody demos the wrong
+build by accident.
+
+### Changing the password
+
+Near the top of the `<script>` in `index.html`:
+
+    const ACCESS_KEY="hawks26";
+
+Change the word, save, re-upload. Worth doing if you hand the staff link round a
+department and it gets forwarded.
+
+Plain `?teacher` with no password does nothing at all — it has to match.

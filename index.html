@@ -573,7 +573,21 @@
 "use strict";
 /* Teacher tools (Skip buttons, ] and \ keys) only turn on when the link ends in ?teacher
    Students get the plain link. Nothing in this file has to be edited before Friday. */
-const TEACHER_MODE=/[?&]teacher\b/.test(location.search);
+/* ---------- THE BACK WAY IN ----------
+   One word, and it is the only thing that gets past the weekend window. Change
+   it whenever you like \u2014 anyone without it gets the student game.
+
+     ?key=hawks26       play the real game any time, window ignored
+     ?teacher=hawks26   the same, plus the skip keys ( ] next stage, \ to the end )
+
+   A run opened either way issues a code beginning TEST- instead of HAWK-, so a
+   staff test can never be mistaken for a student entry when you sort the form.
+   That also means it does not matter much if a student guesses the word: the
+   worst they get is a code that is obviously not an entry. */
+const ACCESS_KEY="hawks26";
+const _qp=new URLSearchParams(location.search);
+const KEYED=(_qp.get("key")===ACCESS_KEY)||(_qp.get("teacher")===ACCESS_KEY);
+const TEACHER_MODE=(_qp.get("teacher")===ACCESS_KEY);
 
 /* ---------- SESSION CONTROL (all set in the link you hand out) ----------
    ?part=1     stages through First Period, then stop with a code
@@ -632,12 +646,12 @@ function readServerTime(){
 }
 function verifyClock(){
   clockTried=true;
-  if(TEACHER_MODE||PREVIEW){clockOK=true;clockBase=Date.now();clockPerf=performance.now();
+  if(KEYED||PREVIEW){clockOK=true;clockBase=Date.now();clockPerf=performance.now();
     return Promise.resolve(true);}
   return readServerTime().catch(()=>false);
 }
 function windowCheck(){
-  if(!TEACHER_MODE&&!PREVIEW&&!clockOK)
+  if(!KEYED&&!PREVIEW&&!clockOK)
     return clockTried
       ? "Could not check the time. Connect to the internet and reload to play."
       : "Checking the time\u2026";
@@ -673,7 +687,7 @@ const PLAYKEY="hawkquest.plays.20260824";
    two-play limit is on Hawk Quest, not on the bonus game. */
 const FLYKEY="hawkquest.flight.20260824";
 function flightUnlocked(){
-  if(TEACHER_MODE||PREVIEW)return true;
+  if(KEYED||PREVIEW)return true;
   try{const s=store();if(s&&s.getItem(FLYKEY))return true;}catch(e){}
   return cookieGet(FLYKEY)>0;
 }
@@ -689,7 +703,7 @@ function cookieSet(k,v){
   try{document.cookie=k+"="+encodeURIComponent(v)+"; path=/; max-age="+(60*60*24*30)+"; SameSite=Lax";}catch(e){}
 }
 function playsUsed(){
-  if(TEACHER_MODE)return 0;
+  if(KEYED)return 0;
   let a=0;
   try{const s=store();if(s)a=parseInt(s.getItem(PLAYKEY)||"0",10)||0;}catch(e){}
   const b=cookieGet(PLAYKEY),n=Math.max(a,b);
@@ -700,14 +714,15 @@ function playsUsed(){
 }
 function playsLeft(){return Math.max(0,MAX_PLAYS-playsUsed());}
 function usePlay(){
-  if(TEACHER_MODE)return;
+  if(KEYED)return;
   const n=playsUsed()+1;
   try{const s=store();if(s)s.setItem(PLAYKEY,String(n));}catch(e){}
   cookieSet(PLAYKEY,n);
 }
 function playsLine(){
   if(PREVIEW)return "Preview build \u2014 the weekend window is switched off. The tamper guard is still on.";
-  if(TEACHER_MODE)return "Teacher mode.";
+  if(TEACHER_MODE)return "Staff link \u2014 skip keys on. Codes come out as TEST.";
+  if(KEYED)return "Staff link \u2014 the weekend window is off. Codes come out as TEST.";
   return "Play as many times as you like this weekend. Your best code is the one to send in.";
 }
 
@@ -3885,7 +3900,8 @@ function makeCode(){
   const chk=(n+identVal()+(caughtHawk?17:0))%31;
   let v=n*32+chk,out="";
   for(let i=0;i<9;i++){out=ALPH[v%32]+out;v=Math.floor(v/32);}
-  return (caughtHawk?"HAWKMAN-":"HAWK-")+identTag()+out.slice(0,4)+"-"+out.slice(4);
+  const head=(KEYED||PREVIEW)?"TEST-":(caughtHawk?"HAWKMAN-":"HAWK-");
+  return head+identTag()+out.slice(0,4)+"-"+out.slice(4);
 }
 
 /* ================= CHECKPOINT ================= */
@@ -4116,7 +4132,7 @@ function showResults(rank,note,w){
     (caughtHawk?"<br><b>You caught Hawkman.</b> That is why your code says HAWKMAN.":"")+
     "<br><b>Hawk coins "+coins+" of "+coinTotal+"</b>"+(superSuit?" &middot; <b>Super Hawk Suit</b>":"")+(coins===coinTotal?" &mdash; you found every one":"")+
     (w.length?"<br>Wearing: "+w.join(", "):"");
-  if(!TEACHER_MODE&&!PREVIEW&&(!clockOK||nowReal()<OPEN_AT||nowReal()>=CLOSE_AT)){
+  if(!KEYED&&!PREVIEW&&(!clockOK||nowReal()<OPEN_AT||nowReal()>=CLOSE_AT)){
     el("scoreCode").textContent="HAWK-....-....";
     el("copyNote").textContent="This run finished outside Hawk Quest Weekend, so there is no code for it.";
     return;
@@ -4225,7 +4241,7 @@ el("copyBtn").onclick=async()=>{
   const txt=el("scoreCode").textContent.trim();
   /* opened before the await, or the browser treats it as a popup */
   let win=null;
-  if(/^HAWK-[A-Z]/.test(txt)){try{win=window.open(formLink(txt),"_blank","noopener");}catch(e){}}
+  if(/^[A-Z]+-[A-Z0-9]/.test(txt)){try{win=window.open(formLink(txt),"_blank","noopener");}catch(e){}}
   let ok=false;
   try{await navigator.clipboard.writeText(txt);ok=true;}catch(e){}
   if(!ok){
@@ -4247,7 +4263,7 @@ el("copyBtn").onclick=async()=>{
 function syncFormLink(){
   const a=el("formLink");if(!a)return;
   const code=(el("scoreCode").textContent||"").trim();
-  a.href=/^HAWK-[A-Z]/.test(code)?formLink(code):FORM_URL;
+  a.href=/^[A-Z]+-[A-Z0-9]/.test(code)?formLink(code):FORM_URL;
 }
 el("scoreCode").onclick=()=>{
   const r=document.createRange();r.selectNodeContents(el("scoreCode"));
@@ -4285,7 +4301,12 @@ function buildPicker(){
   });
 }
 buildPicker();
-if(PREVIEW){const t=el("previewTag");if(t)t.hidden=false;}
+if(PREVIEW||KEYED){
+  const t=el("previewTag");
+  if(t){t.hidden=false;
+    t.innerHTML=PREVIEW?"Preview build &mdash; not the student link"
+                       :"Staff link &mdash; test codes only, not the student link";}
+}
 gateCheck();
 verifyClock().then(()=>{
   /* The gate hid Resume while the time was unknown \u2014 offer it again now
@@ -4311,7 +4332,7 @@ function syncStart(){
 }
 function gateCheck(){
   const msg=windowCheck();
-  if(!msg||TEACHER_MODE)return true;
+  if(!msg||KEYED)return true;
   el("startBtn").dataset.locked="1";
   el("startBtn").disabled=true;
   el("resumeBtn").hidden=true;
@@ -4323,7 +4344,7 @@ function gateCheck(){
 function refreshPlays(){
   const note=el("playsNote");
   const fb=el("flyTitle");
-  if(fb)fb.hidden=!(flightUnlocked()&&(TEACHER_MODE||!windowCheck()));
+  if(fb)fb.hidden=!(flightUnlocked()&&(KEYED||!windowCheck()));
   if(!gateCheck()){if(note)note.hidden=true;return;}
   const left=playsLeft();
   if(note){note.textContent=playsLine();note.hidden=false;}
@@ -4331,10 +4352,10 @@ function refreshPlays(){
   el("gateMsg").hidden=true;
   syncStart();
 }
-setInterval(()=>{ if(!TEACHER_MODE&&!PREVIEW)readServerTime().catch(()=>{}); },120000);
+setInterval(()=>{ if(!KEYED&&!PREVIEW)readServerTime().catch(()=>{}); },120000);
 /* The window can close mid-run on Monday morning. Check it while they play. */
 setInterval(()=>{
-  if(TEACHER_MODE)return;
+  if(KEYED||PREVIEW)return;
   if(playing&&nowReal()>=CLOSE_AT){
     try{stopClock();}catch(e){}
     try{clearSave();}catch(e){}
