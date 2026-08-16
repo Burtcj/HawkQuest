@@ -1932,6 +1932,9 @@ function buildCrowd(){
   SEATROWS.forEach(([wr,tr],ri)=>{
     cols.forEach((cx,ci)=>{
       if(Math.random()<0.18)return;                 /* a few empty seats */
+      /* never on the player's own spot \u2014 a student generated there put a
+         tray on the tile you are about to sit in, which read as a bug */
+      if(((room.map[wr]||"")[cx])==="s")return;
       const table=1+((ri*2+(ci<3?0:1))%4);   /* four rows now, not six */
       list.push({x:cx,y:wr,seat:[cx,wr],table:table,
         c:CROWDSHIRT[(cx+ri*3+ci)%CROWDSHIRT.length],
@@ -2641,7 +2644,8 @@ function move(dx,dy){
   }
   if(ch==="s"){
     px=nx;py=ny;step=3;
-    if(!seated){seated=true;SFX.buy();pay(10,isLunch()?"seated and waiting":"sat down to eat");
+    if(!seated){seated=true;SFX.buy();
+      pay(10,isLunch()?"seated and waiting":(hasTray?"sat down to eat":"found your spot"));
       if(isLunch()){
         say("Seated at <b>Row "+myTable+"</b>. Nobody stands until their row is called.");
         beginCalls();
