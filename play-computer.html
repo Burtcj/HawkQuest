@@ -53,7 +53,7 @@
      follows the player sideways, which is how a top-down game has to work on a
      phone. Nothing about the game logic changes \u2014 it is the same canvas,
      scaled and slid under a window. */
-  @media (min-width:99999px){   /* computer build: phone camera off */
+  @media (min-width:99999px){
     body:not(.titleup):not(.cardup) .stage{
       aspect-ratio:auto;
       height:min(56dvh, 150vw);
@@ -1040,7 +1040,9 @@ function music(name){curTrack=TRACKS[name]?name:null;bgmSync();}
 /* kept as names the rest of the file already calls */
 function bgmPlay(){music("theme");}
 function bgmStop(){music(null);}
-function gameMusic(on){music(on?"game":null);}
+function gameMusic(on){music(on?(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk"):null);}
+/* whichever track suits the room you are standing in */
+function roomMusic(){music(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk");}
 /* the gesture that unlocks audio */
 ["pointerdown","keydown","touchstart"].forEach(ev=>{
   document.addEventListener(ev,()=>{
@@ -1291,15 +1293,21 @@ function drawTile(x,y,ch,room){
      blit(ctx,ART.hawkA,hp,X+2,Y+3,(TS-6)/16,false);
      ctx.fillStyle="#FCB927";ctx.fillRect(X+2,Y+TS-5,TS-4,2);
      break; }
-   case "R":
+   case "R": {                                   /* restroom */
      ctx.fillStyle="#CBBCA4";ctx.fillRect(X,Y,TS,TS);
-     ctx.fillStyle="#3E5C86";ctx.fillRect(X+5,Y+3,22,29);
-     ctx.fillStyle="#4F7099";ctx.fillRect(X+7,Y+6,18,12);
-     ctx.fillStyle="#E0C060";ctx.fillRect(X+22,Y+19,3,4);
-     ctx.fillStyle="#FFFFFF";ctx.fillRect(X+9,Y+7,14,9);        /* the sign */
-     ctx.fillStyle="#14274E";ctx.font="bold 8px Trebuchet MS";ctx.textAlign="center";
-     ctx.fillText("WC",X+16,Y+14);ctx.textAlign="left";
-     break;
+     ctx.fillStyle="#3E5C86";ctx.fillRect(X+4,Y+2,24,30);       /* the door */
+     ctx.fillStyle="#E0C060";ctx.fillRect(X+24,Y+18,3,5);       /* handle */
+     /* a toilet, drawn on the door, because a WC sign means nothing to a
+        sixth grader and a picture of the thing does */
+     ctx.fillStyle="#FFFFFF";ctx.fillRect(X+8,Y+5,16,22);       /* white sign panel */
+     ctx.strokeStyle="#14274E";ctx.lineWidth=1.4;
+     ctx.beginPath();ctx.ellipse(X+15,Y+11,4.6,5.4,0,0,6.3);ctx.stroke();  /* raised lid */
+     ctx.beginPath();ctx.ellipse(X+16,Y+17,5.4,2.4,0,0,6.3);ctx.stroke();  /* seat */
+     ctx.beginPath();ctx.moveTo(X+11,Y+17);ctx.quadraticCurveTo(X+16,Y+25,X+21,Y+17);
+     ctx.stroke();                                              /* bowl */
+     ctx.beginPath();ctx.moveTo(X+14,Y+24);ctx.lineTo(X+18,Y+24);ctx.stroke();
+     ctx.beginPath();ctx.moveTo(X+12,Y+26);ctx.lineTo(X+20,Y+26);ctx.stroke();  /* base */
+     break; }
    case "C":
      ctx.fillStyle="#C0654A";ctx.fillRect(X,Y+4,TS,TS-6);
      ctx.fillStyle="#D9836A";ctx.fillRect(X,Y+4,TS,5);
@@ -1475,7 +1483,7 @@ const ROOMS=[
 {id:"breakfast",name:"Cafeteria — Breakfast",theme:"indoor",steps:248,lunch:1,table:"breakfast",
  intro:"Breakfast is grab and go. Get a tray, sit and eat, then throw away and head to your holding area.",
  card:["Cafeteria","Breakfast is grab and go.","#C0654A"],
- map:["WWwwWWVWwwWWWWwwWWWW",
+ map:["WWwwWWVWwwWWWWwwWWMW",
       ".CCCCCCCCCCCCk......",
       ".oooooooooooon...x..",
       ".TTTTTTTTTTTTTTTT...",
@@ -1507,7 +1515,7 @@ const ROOMS=[
  card:["Holding Area","Out in the courtyard until you are dismissed to class.","#4E9A52"],
  map:["WWWpppppppppppppWWWW",
       "WWdcccccccccccccdWWW",
-      "WWWccccccccccccccWWW",
+      "WWMccccccccccccccWWW",
       "WWWccTTTTccTTTTccWWW",
       "WWwccccccccccccccWWW",
       "WWWccggggggggggccWWW",
@@ -1605,6 +1613,14 @@ const ROOMS=[
    a:["Stop talking and watch","Finish the story quietly","Turn around and keep going"],
    rep:["","Quiet talking over it is still talking over it.","Half the room cannot hear it now."],
    ok:0,why:"Announcements are quiet time. Watching without talking over it is <b>Respectful</b>."},
+  {who:"Mr. Burtch",anchor:0,lead:"One more thing \u2014 backpacks go to the back of the room. Every class, every period.",
+   q:"You get to your seat with your backpack still on.",
+   a:["Take it to the back of the room, then sit down",
+      "Keep it under my desk, it is not in the way",
+      "Hang it on the back of my chair"],
+   rep:["","Under the desk is where somebody trips in a fire drill.",
+        "On the chair it ends up on the floor in the aisle anyway."],
+   ok:0,why:"<b>Backpacks go to the back of the room.</b> Every class. It keeps the aisles clear, which matters most on the day we actually have to get out fast."},
   {who:"Ms. Simmons",anchor:2,lead:"Laptops. Bring it charged, bring it every day, and it goes home with you every night.",
    q:"You left yours on the charger at home this morning.",
    a:["Tell my first period teacher right away","Say nothing and borrow one off somebody","Wait and see if anybody notices"],
@@ -1625,7 +1641,7 @@ const ROOMS=[
 {id:"blunch",name:"B Lunch",theme:"indoor",steps:230,lunch:1,table:"lunch",
  intro:"B lunch, 12:42. Three waits here: wait for your tray, wait to throw away, wait to be dismissed.",
  card:["Three periods later&hellip;","B Lunch","#C0654A"],
- map:["WWWWWWWWWWWWWWWWWAWW",
+ map:["WWWWWWWWWWWWWWWWWMWW",
       ".CCCCCCCCCCCCk......",
       ".oooooooooooon...x..",
       ".TTTTTTTTTTTTTTTT...",
@@ -1699,9 +1715,9 @@ const ROOMS=[
  map:["WWWdWWwWWWWdWWwRWWdW",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
-      "gggggggggggggggggggg",
+      "gggggggggggggGGGgggg",
       "ggggppppgggggppppggg",
-      "gggggggggggggggggggg",
+      "gggggggggggggGGGgggg",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
@@ -1832,6 +1848,7 @@ let myTable=0,called=0,tCalled=0,dCalled=0,tossTimer=null,satAfter=false,seated=
 let missed=[],hasPass=false,sentBack=false;
 /* Breakfast is grab and go. Lunch is the one with three waits: wait for your
    tray, wait to throw away, wait to be dismissed. */
+const INCLASS=["first","fifth","media"];
 const isLunch=()=>!!(R()&&R().table==="lunch");
 const trayReady=()=>!isLunch()||called>=myTable;
 const tossReady=()=>!isLunch()||tCalled>=myTable;
@@ -3115,7 +3132,9 @@ function enterRoomNow(){
   }
   if(R().lunch)startLunch();
   roomMs=0;steps=0;evIdx=0;sat=false;mode="map";startClock();SFX.bell();hud();paintClock();render();
-  if(curTrack==="walk")music("game");
+  /* Out of class \u2014 bus loop, holding area, the walkways, the cafeterias \u2014
+     keeps the walking track. Sitting down in a room switches to the school bed. */
+  roomMusic();
   say("<b>"+R().name+"</b> — "+R().intro);
 }
 
@@ -3321,6 +3340,7 @@ function openSuit(after){
 function brief(){
   grantSuper();
   if(superSuit&&!suitShown){suitShown=true;openSuit(()=>brief());return;}
+  music("boss");                 /* it starts before he walks in */
   mode="brief";hideAll();el("briefPanel").hidden=false;
   saveGame("boss");
   el("superNote").hidden=!superSuit;
@@ -3750,8 +3770,10 @@ let wallSaid=0, grassOpen=false;
 /* The hawk you talk to is the same logo painted all over campus \u2014 bus loop,
    breezeway, both classrooms. Any of them will answer you. The grass is in the
    breezeway you walk through, not out on the track. */
-const HM_GRASS={room:"hall"};
-const isGrassPatch=(r,x,y)=>r&&r.id===HM_GRASS.room&&(r.map[y]||"")[x]==="G";
+/* Both walkways have a patch, so wherever the logo speaks to you there is
+   always one still ahead of you in the day. */
+const HM_GRASS={rooms:["hall","corridor"]};
+const isGrassPatch=(r,x,y)=>!!r&&HM_GRASS.rooms.indexOf(r.id)>=0&&((r.map[y]||"")[x]==="G");
 let hawkSeen=false,caughtHawk=false,hmHP=100,hmTurns=0,hmDone=false,hmRAF=null,hmF=0,hmAsk=null;
 
 function wallHawk(){
@@ -4027,6 +4049,7 @@ function startBoss(){
 }
 let walkRaf=null;
 function bossWalkIn(){
+  music("boss");
   const c=el("briefCv");if(!c)return;
   const g=c.getContext("2d");
   let f=0;
