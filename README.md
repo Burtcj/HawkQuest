@@ -7,14 +7,18 @@ and the link works.
 
 | File | What it is |
 |---|---|
-| `index.html` | Hawk Quest. This is the student link. |
+| `index.html` | The landing page. This is the student link — it asks whether they are on a computer or a phone and sends them to the right one. |
+| `play-computer.html` | The game, sized for a laptop or desktop. Keyboard only, no on-screen buttons, stage grows to fill the window. |
+| `play-phone.html` | The game, sized for a phone held upright. Zoomed map that follows you, big buttons on screen. |
 | `flight.html` | Hawk Flight on its own, if you ever want it separately. |
+| `blunch.html` | The B lunch cafeteria on its own, for practising the lunch procedure in class. No window, no code, no drawing entry. |
 | `.nojekyll` | Tells GitHub to serve the files as-is. Leave it there. |
 
 ## Putting it on GitHub Pages
 
 1. On github.com, **New repository**. Name it `hawkquest`. Public. Create.
-2. On the repo page, **Add file → Upload files**. Drag in `index.html`, `flight.html` and `.nojekyll`. Commit.
+2. On the repo page, **Add file → Upload files**. Drag in `index.html`, `play-computer.html`, `play-phone.html`, `flight.html`,
+   `blunch.html` and `.nojekyll`. Commit.
 3. **Settings → Pages.** Under *Build and deployment*, Source = **Deploy from a
    branch**, Branch = **main**, folder = **/ (root)**. Save.
 4. Wait a minute or two. Your link is:
@@ -60,7 +64,7 @@ the front of an ordinary code fails verification.
 
 ## Changing the play window
 
-Near the top of the `<script>` in `index.html`:
+Near the top of the `<script>` in **both** game files:
 
     const OPEN_AT  = new Date(2026,7,21,15,50,0);   // Fri Aug 21 2026, 3:50 p.m.
     const CLOSE_AT = new Date(2026,7,24, 8,30,0);   // Mon Aug 24 2026, 8:30 a.m.
@@ -75,18 +79,22 @@ is deliberate — it stops a student saving the file and playing it offline late
 
 ## Music
 
-Both tracks are built into `index.html` itself — there is no separate audio
-file to upload and nothing to go missing. The theme plays on the title and
-closing screens, and a quieter second track runs under the game while a student
-is playing. The Sound button turns both off.
+Five tracks are built into each game file itself — there is no separate audio
+file to upload and nothing to go missing. Each screen has its own: the theme on the title and closing
+screens, a quieter bed under the school day, and separate tracks for Hawk
+Flight, the Hawkman encounter and the credits roll. Only one plays at a time and
+the Sound button turns them all off.
 
 ## Testing it before Friday
 
 The student link is shut until 3:50 on the 21st, so you need a way in to check
 it works. Add the password to the end of the address:
 
-    https://burtcj.github.io/hawkquest/?key=hawks26        play it any time
-    https://burtcj.github.io/hawkquest/?teacher=hawks26    the same, plus skip keys
+    https://burtcj.github.io/hawkquest/play-computer.html?key=hawks26
+    https://burtcj.github.io/hawkquest/play-phone.html?teacher=hawks26
+
+The password goes on the game page, not the landing page — the landing page has
+no gate on it, it only points at the two versions.
 
 With the skip keys on, `]` jumps to the next stage and `\` jumps straight to the
 end, which is the quick way to check the closing screen.
@@ -100,7 +108,8 @@ build by accident.
 
 ### Changing the password
 
-Near the top of the `<script>` in `index.html`:
+Near the top of the `<script>` in **both** `play-computer.html` and
+`play-phone.html`:
 
     const ACCESS_KEY="hawks26";
 
@@ -108,3 +117,16 @@ Change the word, save, re-upload. Worth doing if you hand the staff link round a
 department and it gets forwarded.
 
 Plain `?teacher` with no password does nothing at all — it has to match.
+
+## Why two versions
+
+They are the same game, the same code, the same score codes — only the layout
+differs, and a layout that suits a 15-inch laptop wastes most of a phone screen.
+The computer build gives the map the whole window and expects a keyboard. The
+phone build zooms the map in and scrolls it to follow the player, with the
+buttons always on screen.
+
+A student who picks the wrong one still gets a working game. The landing page
+guesses and marks one as recommended, but it never decides for them — a
+touchscreen Chromebook is genuinely ambiguous and they know their own device
+better than a script does. Their choice is remembered for next time.
