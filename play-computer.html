@@ -1484,8 +1484,8 @@ const ROOMS=[
  intro:"Breakfast is grab and go. Get a tray, sit and eat, then throw away and head to your holding area.",
  card:["Cafeteria","Breakfast is grab and go.","#C0654A"],
  map:["WWwwWWVWwwWWWWwwWWMW",
-      ".CCCCCCCCCCCCk......",
-      ".oooooooooooon...x..",
+      ".CCCCCCCCCCCCk.x....",
+      ".oooooooooooon......",
       ".TTTTTTTTTTTTTTTT...",
       "....................",
       ".TTTTTTTTTTTTTTTT...",
@@ -1642,8 +1642,8 @@ const ROOMS=[
  intro:"B lunch, 12:42. Three waits here: wait for your tray, wait to throw away, wait to be dismissed.",
  card:["Three periods later&hellip;","B Lunch","#C0654A"],
  map:["WWWWWWWWWWWWWWWWWMWW",
-      ".CCCCCCCCCCCCk......",
-      ".oooooooooooon...x..",
+      ".CCCCCCCCCCCCk.x....",
+      ".oooooooooooon......",
       ".TTTTTTTTTTTTTTTT...",
       "....................",
       ".TTTTTTTTTTTTTTTT...",
@@ -1823,7 +1823,12 @@ const CATALOG=[
  {slot:"gloves",k:"talon",nm:"Talon gauntlets",pr:34,sw:"#C68A0A",grp:2,ds:"Gold gauntlets down to the talons."},
  {slot:"feathers",k:"gold",nm:"Gold feathers",pr:40,sw:"#FCB927",grp:2,ds:"CMS gold from beak to tail. The full Hawk."},
  {slot:"tool",k:"hint",nm:"Hint",pr:14,sw:"#8FA0C0",grp:3,ds:"Takes one wrong answer off the board. Works on any question, including the showdown."},
- {slot:"tool",k:"renn",nm:"Renaissance card",pr:28,sw:"#3FAE6A",grp:3,ds:"Cancels one mistake against the new kid. No points lost, nobody switches sides."}
+ {slot:"tool",k:"renn",nm:"Renaissance card",pr:28,sw:"#3FAE6A",grp:3,ds:"Cancels one mistake against the new kid. No points lost, nobody switches sides."},
+ /* Only on the shelf once the painted hawk has spoken to you. Deliberately
+    vague \u2014 a student who has not found the sequence should not learn what it
+    is from a price list. */
+ {slot:"tool",k:"ball",nm:"Hawk ball",pr:18,sw:"#FCB927",grp:3,secret:1,
+  ds:"Heavier than it looks. You will know when you need it."}
 ];
 const GROUPS=["You can wear this at school","Not dress code \u2014 but this is your Hawk","Changes to your Hawk","Help for the showdown"];
 const NOPE="on your Hawk now. Just remember the real rule: no hats, hoods, visors, or sunglasses on campus.";
@@ -1911,7 +1916,11 @@ function freeTile(x,y,self){
    Kids you cannot talk to. They sit at a table, wait for their number, get a
    tray, eat, and wait to be dismissed — the whole procedure, in order, so a
    student can watch the routine happen around them. */
-const SEATROWS=[[3,2],[5,4],[7,6]];   /* walk row, table row */
+/* Aisle row a student sits in, and the table row in front of them. These have to
+   match the cafeteria map \u2014 when the map was rebuilt these still pointed at
+   the old rows, so the crowd stood on tabletops and you got a tray hovering on
+   an empty tile with nobody under it. */
+const SEATROWS=[[4,3],[6,5],[8,7]];   /* aisle row, table row */
 function buildCrowd(){
   const room=R();if(!room||!room.lunch)return;
   const list=[];
@@ -1920,7 +1929,7 @@ function buildCrowd(){
   SEATROWS.forEach(([wr,tr],ri)=>{
     cols.forEach((cx,ci)=>{
       if(Math.random()<0.18)return;                 /* a few empty seats */
-      const table=1+((ri*2+(ci<3?0:1))%6);
+      const table=1+((ri*2+(ci<3?0:1))%4);   /* four rows now, not six */
       list.push({x:cx,y:wr,seat:[cx,wr],table:table,
         c:CROWDSHIRT[(cx+ri*3+ci)%CROWDSHIRT.length],
         pi:(cx*7+wr*13)%5,state:"sit",look:"up",face:1,walk:0,t:(cx*5+ri)%16,still:true});
@@ -1930,7 +1939,8 @@ function buildCrowd(){
   room.crowd=list;
 }
 const CROWDSHIRT=["#7CC5F0","#F09A7C","#9FE0B0","#C9B8DD","#F2C46B","#B9C6DD","#E0A9C0"];
-const AISLE=8, LINE=[8,8], TRASH=[15,8];
+/* the cross aisle they walk up, the end of the serving line, and the bin */
+const AISLE=18, LINE=[13,2], TRASH=[16,2];
 /* Walk the open aisle, not through the tables. */
 function crowdRoute(p,dest){
   const wp=[];
@@ -3135,7 +3145,9 @@ function announce(title,line,tint){
 function showCard(cb){
   const c=R()&&R().card;
   if(!c){cb();return;}
-  music("walk");                 /* on the move between stages */
+  /* Whatever the next area plays, start it here so the card and the stage are
+     one continuous piece of music instead of a cut. */
+  roomMusic();
   mode="card";hideAll();
   el("cardTint").style.background=c[2];
   el("cardKick").textContent=(R().theme==="outdoor"?"Outside":"Inside")+" \u00B7 "+R().name;
@@ -3281,7 +3293,9 @@ function paintShop(){
   const row=el("shopRow");row.innerHTML="";
   let shown=0;
   GROUPS.forEach((gname,gi)=>{
-    const items=CATALOG.filter(it=>it.grp===gi&&!(own[it.slot+":"+it.k]&&it.slot!=="tool"));
+    const items=CATALOG.filter(it=>it.grp===gi
+      &&!(own[it.slot+":"+it.k]&&it.slot!=="tool")
+      &&(!it.secret||grassOpen));      /* hidden until the hawk has spoken */
     if(!items.length)return;
     const h=document.createElement("div");h.className="grp";h.textContent=gname;row.appendChild(h);
     const line=document.createElement("div");line.className="chips";
@@ -3832,6 +3846,10 @@ function wallHawk(){
     say("<b>\u201cWait\u2026 what was that?\u201d</b><br>The paint has not moved. "
        +"Something in the long grass along the breezeway has.");
     grassOpen=true;
+    tools.ball=(tools.ball||0)+1;
+    setTimeout(()=>{if(mode==="map")
+      say("Something small and heavy is sitting on the floor under the paint. "
+         +"<b>A Hawk ball.</b> There are more in the store.");},2200);
     return;
   }
   SFX.bump();
@@ -3860,6 +3878,23 @@ function hmPal(){
   return {o:OUT,g:"#FFD34D",y:"#FFF3C4",d:"#B8860B",t:"#FF7A1A",
           e:"#FFFFFF",b:"#0B1730",r:"#D65A2D"};
 }
+/* A Hawk ball: navy shell, gold band, yellow H. Drawn here so the store swatch,
+   the throw and the shake all use the same one. */
+function drawBall(c,x,y,r,spin){
+  c.save();c.translate(x,y);c.rotate(spin||0);
+  c.fillStyle="#14274E";c.beginPath();c.arc(0,0,r,0,6.3);c.fill();
+  c.fillStyle="#FCB927";c.fillRect(-r,-r*0.18,r*2,r*0.36);
+  c.strokeStyle="#0B1730";c.lineWidth=Math.max(1,r*0.14);
+  c.beginPath();c.arc(0,0,r,0,6.3);c.stroke();
+  c.fillStyle="#FCB927";
+  c.font="bold "+Math.round(r*1.15)+"px system-ui, sans-serif";
+  c.textAlign="center";c.textBaseline="middle";
+  c.fillText("H",0,r*0.02);
+  c.textAlign="left";c.textBaseline="alphabetic";
+  c.restore();
+}
+/* set while a throw is in the air; drawHawkman reads it */
+let ballFly=null;
 function drawHawkman(){
   const c=el("hmCv").getContext("2d"),W=320,H=200;
   hmF++;
@@ -3877,9 +3912,20 @@ function drawHawkman(){
   }
   const bob=Math.round(Math.sin(hmF/9)*3);
   const s=7, ox=(W-16*s)/2, oy=H-16*s-18+bob;
+  const hidden = ballFly && ballFly.phase==="in";
   c.fillStyle="rgba(0,0,0,.3)";
   c.beginPath();c.ellipse(ox+8*s,H-16,32,7,0,0,6.3);c.fill();
-  blit(c,(hmF%16<8)?ART.hawkA:ART.hawkB,hmPal(),ox,oy,s,false);
+  if(!hidden){
+    let sc=1;
+    if(ballFly&&ballFly.phase==="shrink")sc=Math.max(0,1-ballFly.t/12);
+    if(sc>=1) blit(c,(hmF%16<8)?ART.hawkA:ART.hawkB,hmPal(),ox,oy,s,false);
+    else if(sc>0){
+      c.save();c.translate(ox+8*s,oy+16*s);c.scale(sc,sc);c.translate(-8*s,-16*s);
+      c.globalAlpha=0.85;
+      blit(c,ART.hawkA,hmPal(),0,0,s,false);
+      c.globalAlpha=1;c.restore();
+    }
+  }
   for(let i=0;i<5;i++){
     const a=(hmF/22)+i*1.26;
     c.fillStyle="rgba(252,185,39,"+(0.35+0.3*Math.sin(hmF/8+i))+")";
@@ -3894,6 +3940,20 @@ function drawHawkman(){
   c.font="bold 10px system-ui, sans-serif";c.textAlign="left";
   c.fillStyle="#FFFFFF";c.fillText("HAWKMAN",14,42);
   c.textAlign="right";c.fillText("HP "+Math.round(hp)+"%",W-14,42);
+  /* the throw itself */
+  if(ballFly){
+    const bx=ballFly.x, by=ballFly.y;
+    if(ballFly.phase==="throw"||ballFly.phase==="shrink"||ballFly.phase==="in"||ballFly.phase==="shake"){
+      drawBall(c,bx,by,ballFly.r,ballFly.spin);
+    }
+    if(ballFly.phase==="pop"){
+      for(let i=0;i<8;i++){
+        const a=i/8*6.28+ballFly.t*0.1, d=8+ballFly.t*3;
+        c.fillStyle="rgba(252,185,39,"+Math.max(0,1-ballFly.t/14)+")";
+        c.fillRect(bx+Math.cos(a)*d-2, by+Math.sin(a)*d-2, 4,4);
+      }
+    }
+  }
   c.textAlign="left";
 }
 function hmLoop(){ if(mode!=="hawkman")return; drawHawkman(); hmRAF=requestAnimationFrame(hmLoop); }
@@ -3933,7 +3993,8 @@ function hmButtons(){
     const b=document.createElement("button");
     b.className="opt";b.type="button";
     b.style.borderColor="#FCB927";b.style.background="#24406F";
-    b.textContent="\u25CF  Throw the Hawk Ball";
+    b.textContent=(tools.ball>0)?"\u25CF  Throw the Hawk ball"
+                                :"\u25CF  Throw a Hawk ball \u2014 you have none";
     b.onclick=hmBall;box.appendChild(b);
   }
 }
@@ -3954,18 +4015,53 @@ function hmSay(l){
   }
   hmButtons();
 }
+function throwBall(onDone){
+  const W=320,H=200, s=7;
+  const tx=W/2, ty=H-16*s-18+16*s*0.55;      /* about his middle */
+  ballFly={x:40,y:H-40,r:9,spin:0,phase:"throw",t:0,vx:(tx-40)/16,vy:-4.2};
+  const step=()=>{
+    if(!ballFly)return;
+    const f=ballFly;f.t++;f.spin+=0.35;
+    if(f.phase==="throw"){
+      f.x+=f.vx;f.y+=f.vy;f.vy+=0.34;
+      if(f.t>=16){f.phase="shrink";f.t=0;f.x=tx;f.y=ty;SFX.coin();}
+    } else if(f.phase==="shrink"){
+      if(f.t>=12){f.phase="in";f.t=0;}
+    } else if(f.phase==="in"){
+      f.y=ty+Math.sin(f.t/2.2)*3;           /* it wobbles */
+      if(f.t%14===0)SFX.step();
+      if(f.t>=44){f.phase=onDone.caught?"done":"pop";f.t=0;
+        if(!onDone.caught)SFX.bad();}
+    } else if(f.phase==="pop"){
+      if(f.t>=16){ballFly=null;onDone.fn();return;}
+    } else if(f.phase==="done"){
+      if(f.t>=6){ballFly=null;onDone.fn();return;}
+    }
+    setTimeout(step,32);
+  };
+  step();
+}
 function hmBall(){
-  if(hmHP>30){SFX.bad();hmHP=Math.min(100,hmHP+10);
-    el("hmSay").innerHTML="Too soon \u2014 he swats it away and backs off.";hmButtons();return;}
-  hmDone=true;caughtHawk=true;flash=16;SFX.win();
-  el("hmTag").textContent="Caught";
-  el("hmSay").innerHTML="<b>The ball taps him and he goes in without a fight.</b><br>"
-    +"Your score code comes out different now.";
-  pay(50,"you caught Hawkman");
-  hmButtons();
-  setTimeout(hmClose,3200);
+  if(!(tools.ball>0)){SFX.bad();
+    el("hmSay").innerHTML="You reach for a ball and there is nothing in your bag. "
+      +"<b>There are some in the store.</b>";return;}
+  if(hmHP>30){SFX.bad();hmHP=Math.min(100,hmHP+10);tools.ball--;
+    el("hmSay").innerHTML="Too soon \u2014 he swats it away and it rolls off under the fence.";
+    hmButtons();return;}
+  hmDone=true;tools.ball--;
+  el("hmOpts").innerHTML="";
+  el("hmSay").innerHTML="You throw it.";
+  throwBall({caught:true, fn:()=>{
+    caughtHawk=true;flash=16;SFX.win();
+    el("hmTag").textContent="Caught";
+    el("hmSay").innerHTML="<b>Three wobbles and it goes still.</b> Hawkman is yours.<br>"
+      +"Your score code comes out different now.";
+    pay(50,"you caught Hawkman");
+    setTimeout(hmClose,2600);
+  }});
 }
 function hmClose(){
+  ballFly=null;
   cancelAnimationFrame(hmRAF);hmRAF=null;
   mode="map";hideAll();startClock();hud();render();music("game");
   el("hud").hidden=false;el("pad").hidden=!("ontouchstart" in window);
@@ -4588,6 +4684,7 @@ function showResults(rank,note,w){
 
 /* ================= START ================= */
 function busIntro(){
+  music("theme");            /* the opening carries the title music */
   mode="intro";
   let f=0;const N=56;
   (function step(){
