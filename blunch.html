@@ -647,10 +647,7 @@ const DAYNAMES=["SUN","MON","TUE","WED","THU","FRI","SAT"];
    Everything else, including the tamper guard, works exactly as it will
    for students. Do not publish this file. */
 const PREVIEW=false;
-/* ---------- SOLO: B LUNCH ONLY ----------
-   The cafeteria stage on its own, for practising the lunch procedure in class.
-   No weekend window, no score code, no drawing. */
-const SOLO=true;
+const SOLO=true;   /* the cafeteria stage on its own */
 const OPEN_AT =new Date(2000,0,1);   /* Fri Aug 21 2026, 3:50 p.m. */
 const CLOSE_AT=new Date(2099,0,1);   /* Mon Aug 24 2026, 8:30 a.m. */
 const WHEN_OPEN ="Friday, August 21 at 3:50 p.m.";
@@ -685,8 +682,7 @@ function readServerTime(){
 }
 function verifyClock(){
   clockTried=true;
-  if(SOLO){clockOK=true;clockBase=Date.now();clockPerf=performance.now();
-    return Promise.resolve(true);}
+  if(SOLO){clockOK=true;clockBase=Date.now();clockPerf=performance.now();return Promise.resolve(true);}
   if(true){clockOK=true;clockBase=Date.now();clockPerf=performance.now();
     return Promise.resolve(true);}
   return readServerTime().catch(()=>false);
@@ -1194,7 +1190,7 @@ function gearFront(c,X,Y,s){
 /* g grass  a asphalt  l lane stripe  y curb  c concrete  p hedge
    W building wall  w window  d classroom door  C serving counter  H whiteboard
    T table/desk  B bus  D exit  . indoor floor                                */
-const BLOCK="pWwdCHTBMVxKLYFPRA";  /* "*" coins and "d" doors are walkable-into, handled in move() */
+const BLOCK="pWwdCHTBMVxKLYFPRAk";  /* "*" coins and "d" doors are walkable-into, handled in move() */
 const THEMES={
  outdoor:{floorA:"#B9BFC9",floorB:"#AFB6C1"},
  indoor:{floorA:"#E3E8F0",floorB:"#D5DCE7"}
@@ -1260,6 +1256,12 @@ function drawTile(x,y,ch,room){
      ctx.fillStyle="#8F5B36";ctx.fillRect(X+7,Y+6,18,12);
      ctx.fillStyle="#E0C060";ctx.fillRect(X+22,Y+19,3,4);
      break;
+   case "k": {                                    /* cafeteria staff at the till */
+     ctx.fillStyle="#C0654A";ctx.fillRect(X,Y+4,TS,TS-6);
+     ctx.fillStyle="#D9795C";ctx.fillRect(X,Y+4,TS,4);
+     blit(ctx,ART.personF,pal("#D9A882","#2A2018","#F2F4F8","#2A2A32"),X+2,Y-9,(TS-4)/16,false);
+     ctx.fillStyle="#F2F4F8";ctx.fillRect(X+6,Y-8,20,5);      /* hairnet */
+     break; }
    case "o": {                                    /* the marked lunch line */
      ctx.fillStyle="#E3E8F0";ctx.fillRect(X,Y,TS,TS);
      ctx.fillStyle="#FCB927";ctx.fillRect(X,Y+2,TS,3);
@@ -1477,27 +1479,27 @@ const ROOMS=[
  intro:"Breakfast is grab and go. Get a tray, sit and eat, then throw away and head to your holding area.",
  card:["Cafeteria","Breakfast is grab and go.","#C0654A"],
  map:["WWwwWWVWwwWWWWwwWWWW",
+      ".CCCCCCCCCCCCk......",
+      ".oooooooooooon...x..",
+      ".TTTTTTTTTTTTTTTT...",
       "....................",
-      ".TTTTTT...TTTTTT....",
+      ".TTTTTTTTTTTTTTTT...",
+      "....s...............",
+      ".TTTTTTTTTTTTTTTT...",
       "....................",
-      ".TTTTTT...TTTTTT....",
-      "......s.............",
-      ".TTTTTT...TTTTTT....",
-      "....................",
-      "CCCCCCCC.......x....",
-      "....................",
+      ".TTTTTTTTTTTTTTTT...",
       "WWWWWWWWWWWWWWWWWWDW",
       "WWWWWWWWWWWWWWWWWWWW"],
- start:[2,9],
- coins:[[3,1],[16,7]],
- amb:[{x:17,y:3,c:"#B9C6DD",line:"<b>6th grader:</b> Clean your spot — table and floor. Only takes ten seconds, and it shows our custodians you are <b>Respectful</b>."}],
+ start:[1,8],
+ coins:[[17,1],[6,8]],
+ amb:[{x:17,y:4,c:"#B9C6DD",line:"<b>6th grader:</b> Clean your spot — table and floor. Only takes ten seconds, and it shows our custodians you are <b>Respectful</b>."}],
  npcs:[
-  {x:4,y:3,c:"#7CC5F0",adult:"f",skinX:"#F0C8AA",hairX:"#6B4A2A",who:"Ms. Ladas",hi:"Good morning! Head to your table.",flavor:"The friendly face that runs the cafeteria in the morning.",
+  {x:4,y:4,c:"#7CC5F0",adult:"f",skinX:"#F0C8AA",hairX:"#6B4A2A",who:"Ms. Ladas",hi:"Good morning! Head to your table.",flavor:"The friendly face that runs the cafeteria in the morning.",
    q:"You walk in at breakfast. First move?",
    a:["Grab a tray, then sit down and eat","Save seats for my friends first","Stand around and wait for my table to be called"],
    rep:["","Saving seats is how the whole room ends up standing.","Nobody calls tables at breakfast."],
    ok:0,why:"Breakfast is <b>grab and go</b> \u2014 tray, seat, eat, throw away. <b>Lunch</b> is the one where you wait to be called."},
-  {x:12,y:5,c:"#F09A7C",who:"6th grader",hi:"Hey! You sitting here?",flavor:"Keeps getting out of their seat for one more thing.",
+  {x:12,y:4,c:"#F09A7C",who:"6th grader",hi:"Hey! You sitting here?",flavor:"Keeps getting out of their seat for one more thing.",
    q:"Is it okay to keep getting up? I always forget something — a napkin, ketchup, a straw.",
    a:["No — one trip. Get everything while you are up","Sure, it is only one thing at a time","Just ask a teacher to bring it to you"],
    rep:["","One person up turns into thirty people up.","That is not their job, and it still gets me out of my seat."],
@@ -1551,8 +1553,8 @@ const ROOMS=[
       "cccccccccccccccccccc",
       "gggggggggggggggggggg",
       "ggggppppgggggppppggg",
-      "gggggggggggggggggggg",
-      "gggggggggggggggggggg",
+      "gggggggggggggGGGgggg",
+      "gggggggggggggGGGgggg",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
@@ -1627,8 +1629,8 @@ const ROOMS=[
  intro:"B lunch, 12:42. Three waits here: wait for your tray, wait to throw away, wait to be dismissed.",
  card:["Three periods later&hellip;","B Lunch","#C0654A"],
  map:["WWWWWWWWWWWWWWWWWAWW",
-      ".CCCCCCCCCCCC..x....",
-      ".oooooooooooon......",
+      ".CCCCCCCCCCCCk......",
+      ".oooooooooooon...x..",
       ".TTTTTTTTTTTTTTTT...",
       "....................",
       ".TTTTTTTTTTTTTTTT...",
@@ -1639,15 +1641,15 @@ const ROOMS=[
       "WWWWWWWWWWWWWWWWWWDW",
       "WWWWWWWWWWWWWWWWWWWW"],
  start:[1,8],
- coins:[[17,1],[14,7]],
- amb:[{x:3,y:3,c:"#C9B8DD",line:"<b>6th grader:</b> Food and drinks stay in the cafeteria. Don't walk out with it."}],
+ coins:[[17,1],[14,8]],
+ amb:[{x:3,y:4,c:"#C9B8DD",line:"<b>6th grader:</b> Food and drinks stay in the cafeteria. Don't walk out with it."}],
  npcs:[
-  {x:15,y:7,c:"#9FE0B0",adult:"f",skinX:"#C99A6E",hairX:"#2A2018",who:"Ms. Garnelo",hi:"Afternoon! Good to see you.",flavor:"One of our school counselors. On B lunch duty today, and always happy to see you.",
+  {x:15,y:8,c:"#9FE0B0",adult:"f",skinX:"#C99A6E",hairX:"#2A2018",who:"Ms. Garnelo",hi:"Afternoon! Good to see you.",flavor:"One of our school counselors. On B lunch duty today, and always happy to see you.",
    q:"You're finished eating at lunch.",
    a:["Stay seated until my table is called to throw away","Walk my tray up whenever","Move to a table that's already been called"],
    rep:["","Whenever turns into everybody at once.","Moving rows to beat the call is still not waiting."],
    ok:0,why:"Stay seated until your table is called to throw away. Waiting is <b>Respectful</b> to everybody still eating."},
-  {x:6,y:3,c:"#F09A7C",who:"8th grader",hi:"You got a napkin?",flavor:"Leaves crumbs everywhere and knows it.",
+  {x:6,y:4,c:"#F09A7C",who:"8th grader",hi:"You got a napkin?",flavor:"Leaves crumbs everywhere and knows it.",
    q:"There's a mess under your seat when you stand up.",
    a:["Clean my spot — table and floor","Leave it, we have custodians for that","Push it under the table"],
    rep:["","We do have custodians, and they should not be cleaning up after you.","It's still there. Now it's just hidden."],
@@ -1700,9 +1702,9 @@ const ROOMS=[
  map:["WWWdWWwWWWWdWWwRWWdW",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
-      "ggggggggggggggggGGGg",
-      "ggggppppgggggppppGGg",
-      "ggggggggggggggggGGGg",
+      "gggggggggggggggggggg",
+      "ggggppppgggggppppggg",
+      "gggggggggggggggggggg",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
       "cccccccccccccccccccc",
@@ -2604,9 +2606,14 @@ function move(dx,dy){
   }
   if(ch==="s"){
     px=nx;py=ny;step=3;
-    if(!seated){seated=true;SFX.buy();pay(10,"seated and waiting");
-      say("Seated at <b>Row "+myTable+"</b>. Nobody stands until their number is called.");
-      beginCalls();}
+    if(!seated){seated=true;SFX.buy();pay(10,isLunch()?"seated and waiting":"sat down to eat");
+      if(isLunch()){
+        say("Seated at <b>Row "+myTable+"</b>. Nobody stands until their row is called.");
+        beginCalls();
+      } else {
+        say(hasTray?"Sat down with your tray. <b>Eat</b>, then clean your spot."
+                   :"Sat down. Grab your tray from the line first \u2014 the counter is at the top.");
+      }}
     else if(hasTray&&!ate){ate=true;SFX.clear();pay(15,"one trip, back in your seat");
       if(isLunch()){say("You eat. Now <b>stay seated</b> until Row "+myTable+" is called to throw away.");beginToss();}
       else say("You eat. Clean your spot, then take your tray to the trash whenever you're ready.");}
@@ -2671,7 +2678,7 @@ function move(dx,dy){
     }
     say(doorSaid[wk]);return;
   }
-  if(ch==="A"){wallHawk();return;}
+  if(ch==="M"){wallHawk();return;}
   if(ch==="C"&&R()&&R().lunch){
     SFX.bump();say("Stay on the line and keep moving \u2014 the food comes to you.");return;}
   if(ch==="R"){
@@ -2756,19 +2763,19 @@ function move(dx,dy){
   const hold=seatHold();
   if(hold){SFX.bump();say(hold);return;}
   px=nx;py=ny;step=3;steps++;totalSteps++;GUARD.sync();paintClock();
-  if(isLunch()&&((R().map[py]||"")[px])==="n"&&!hasTray&&!ate){
+  if(R()&&R().lunch&&((R().map[py]||"")[px])==="n"&&!hasTray&&!ate){
     if(!trayReady()){SFX.bad();
       say("The line is for whichever row is up. They are on <b>Row "+called+"</b>.");}
     else{
-      hasTray=true;SFX.coin();pay(10,"waited your turn");
-      say("You punch your student number in at the end of the line. <b>Tray in hand</b> "
-         +"\u2014 one trip, straight back to your seat.");
+      hasTray=true;SFX.coin();pay(10,isLunch()?"waited your turn":"one trip");
+      say("<b>Cafeteria staff:</b> Morning \u2014 put your number in for me.<br>"
+         +"You punch it in and she hands your tray across. <b>One trip</b>, straight to your seat.");
     }
   }
   if(!hawkSeen&&isGrassPatch(R(),px,py)){
     if(grassOpen){setTimeout(hmOpen,220);return;}
     if(!R()._grassHint){R()._grassHint=1;
-      say("Long grass out by the track. Something moved in it, but it has gone still.");}
+      say("Long grass along the breezeway. Something moved in it, but it has gone still.");}
   }if(tick%2===0)SFX.step();
   paceCheck();passCheck();
   if(R()&&R().lunch&&thrown&&!dismissed&&!onSeat()&&steps%9===0)
@@ -3744,7 +3751,10 @@ let wallSaid=0, grassOpen=false;
 /* The patch is drawn as long grass so you can see it from across the walkway,
    and stepping on any of it works \u2014 a single hidden tile in a field of
    identical grass was never going to be found. */
-const HM_GRASS={room:"corridor"};
+/* The hawk you talk to is the same logo painted all over campus \u2014 bus loop,
+   breezeway, both classrooms. Any of them will answer you. The grass is in the
+   breezeway you walk through, not out on the track. */
+const HM_GRASS={room:"hall"};
 const isGrassPatch=(r,x,y)=>r&&r.id===HM_GRASS.room&&(r.map[y]||"")[x]==="G";
 let hawkSeen=false,caughtHawk=false,hmHP=100,hmTurns=0,hmDone=false,hmRAF=null,hmF=0,hmAsk=null;
 
@@ -3752,18 +3762,20 @@ function wallHawk(){
   wallSaid++;
   if(wallSaid===1){
     SFX.talk();
-    say("The hawk logo on the cafeteria wall looks straight at you. <b>\u201cI love CMS.\u201d</b>");
+    say("You stop at the hawk on the wall \u2014 the same one painted all over campus. "
+       +"It looks straight at you. <b>\u201cI love CMS.\u201d</b>");
     return;
   }
   if(wallSaid===2){
     SFX.bad();flash=10;
-    say("<b>\u201cWait\u2026 what was that?\u201d</b><br>The logo has not moved. Something out in the long grass by the track has.");
+    say("<b>\u201cWait\u2026 what was that?\u201d</b><br>The paint has not moved. "
+       +"Something in the long grass along the breezeway has.");
     grassOpen=true;
     return;
   }
   SFX.bump();
-  say(grassOpen?"It is a logo again. Whatever answered you is out in the grass by the track."
-               :"It is the hawk logo on the wall.");
+  say(grassOpen?"It is paint again. Whatever answered you is in the grass along the breezeway."
+               :"The hawk logo. Every building has one.");
 }
 
 /* ---------- the battle ---------- */
@@ -3829,7 +3841,7 @@ function hmOpen(){
   hawkSeen=true;hmHP=100;hmTurns=0;hmDone=false;
   mode="hawkman";stopClock();releaseHeld();hideAll();music("hawk");
   el("hawkmanPanel").hidden=false;
-  el("hmTag").textContent="Out by the track";
+  el("hmTag").textContent="Along the breezeway";
   el("hmSay").innerHTML="The grass moves and he steps out of it. <b>Hawkman.</b><br>"
     +"He is listening. Say something true about this school and he settles.";
   cancelAnimationFrame(hmRAF);hmLoop();
@@ -4496,15 +4508,11 @@ function showResults(rank,note,w){
     return;
   }
   gameMusic(false);bgmPlay();
-  if(SOLO){
-    el("scoreCode").textContent="B LUNCH PRACTICE";
-    el("copyBtn").hidden=true;
-    el("copyNote").textContent="Practice round \u2014 no code and no drawing entry. Run it again as often as you like.";
+  if(SOLO){el("scoreCode").textContent="B LUNCH PRACTICE";el("copyBtn").hidden=true;
+    el("copyNote").textContent="Practice round \u2014 no code and no drawing entry.";
     const fl=el("formLink"); if(fl&&fl.parentElement) fl.parentElement.hidden=true;
     const lb=document.querySelector("#endPanel .lb"); if(lb) lb.hidden=true;
-    el("flyOpen").hidden=true;
-    return;
-  }
+    el("flyOpen").hidden=true; return;}
   syncFormLink();
   try{
     paintBoard(el("lbQuest"), questBoard(),
@@ -4567,7 +4575,7 @@ function start(){
   hawkSeen=false;caughtHawk=false;wallSaid=0;grassOpen=false;
   cancelAnimationFrame(flyRAF);flyRAF=null;
   cut=null;
-  roomIdx=ROOMS.findIndex(r=>r.id==="blunch");   /* straight into the cafeteria */
+  roomIdx=ROOMS.findIndex(r=>r.id==="blunch");
   earned=0;wallet=60;
   tools={hint:DIFF.startHints,renn:0};own={};
   eq={feathers:pickedHawk,wings:"std",shirt:null,lanyard:null,shoes:null,pack:null,extra:null,cape:null,mask:null,gloves:null,capeC:"black",maskC:"gold",wingC:"blaze"};
@@ -4584,7 +4592,7 @@ function start(){
   el("hud").hidden=false;el("pad").hidden=false;el("padHint").hidden=false;
   px=R().start[0];py=R().start[1];roomMs=0;steps=0;totalSteps=0;hud();paintClock();
   GUARD.arm();
-  if(SOLO||PART===2){enterRoom();return;}    /* no bus ride when we start at lunch */
+  if(SOLO||PART===2){enterRoom();return;}
   busIntro();
 }
 /* ---------- THE FORM ----------
