@@ -1043,9 +1043,9 @@ function music(name){curTrack=TRACKS[name]?name:null;bgmSync();}
 /* kept as names the rest of the file already calls */
 function bgmPlay(){music("theme");}
 function bgmStop(){music(null);}
-function gameMusic(on){music(on?(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk"):null);}
+function gameMusic(on){if(on)roomMusic();else music(null);}
 /* whichever track suits the room you are standing in */
-function roomMusic(){music(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk");}
+function roomMusic(){music(R()&&WALKROOMS.indexOf(R().id)>=0?"walk":"game");}
 /* the gesture that unlocks audio */
 ["pointerdown","keydown","touchstart"].forEach(ev=>{
   document.addEventListener(ev,()=>{
@@ -1851,7 +1851,11 @@ let myTable=0,called=0,tCalled=0,dCalled=0,tossTimer=null,satAfter=false,seated=
 let missed=[],hasPass=false,sentBack=false;
 /* Breakfast is grab and go. Lunch is the one with three waits: wait for your
    tray, wait to throw away, wait to be dismissed. */
-const INCLASS=["first","fifth","media"];
+/* Where you are walking between places, the walking track plays. Where you are
+   settled \u2014 a classroom, a cafeteria, the media centre \u2014 the school bed
+   plays. Keeping the cafeterias on the walking track meant six stages running
+   back to back on one short loop, which is why it sounded like one song. */
+const WALKROOMS=["loop","holding","hall","corridor"];
 const isLunch=()=>!!(R()&&R().table==="lunch");
 const trayReady=()=>!isLunch()||called>=myTable;
 const tossReady=()=>!isLunch()||tCalled>=myTable;
@@ -3110,6 +3114,9 @@ function showCard(cb){
 function enterRoom(){showCard(enterRoomNow);}
 function enterRoomNow(){
   if(!R()){brief();return;}   /* a queued card can fire after the last stage */
+  /* Set before anything below can return early \u2014 the no-pass walkway branch
+     used to skip this, so those stages kept whatever was playing before. */
+  roomMusic();
   saveGame("room");
   autoStop();stepBonus=0;nudged=false;autoFired=false;
   if(R().seatSim||R().id==="fifth")buildClass();
@@ -3136,9 +3143,6 @@ function enterRoomNow(){
   }
   if(R().lunch)startLunch();
   roomMs=0;steps=0;evIdx=0;sat=false;mode="map";startClock();SFX.bell();hud();paintClock();render();
-  /* Out of class \u2014 bus loop, holding area, the walkways, the cafeterias \u2014
-     keeps the walking track. Sitting down in a room switches to the school bed. */
-  roomMusic();
   say("<b>"+R().name+"</b> — "+R().intro);
 }
 

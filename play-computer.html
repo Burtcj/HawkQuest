@@ -1040,9 +1040,9 @@ function music(name){curTrack=TRACKS[name]?name:null;bgmSync();}
 /* kept as names the rest of the file already calls */
 function bgmPlay(){music("theme");}
 function bgmStop(){music(null);}
-function gameMusic(on){music(on?(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk"):null);}
+function gameMusic(on){if(on)roomMusic();else music(null);}
 /* whichever track suits the room you are standing in */
-function roomMusic(){music(R()&&INCLASS.indexOf(R().id)>=0?"game":"walk");}
+function roomMusic(){music(R()&&WALKROOMS.indexOf(R().id)>=0?"walk":"game");}
 /* the gesture that unlocks audio */
 ["pointerdown","keydown","touchstart"].forEach(ev=>{
   document.addEventListener(ev,()=>{
@@ -1848,7 +1848,11 @@ let myTable=0,called=0,tCalled=0,dCalled=0,tossTimer=null,satAfter=false,seated=
 let missed=[],hasPass=false,sentBack=false;
 /* Breakfast is grab and go. Lunch is the one with three waits: wait for your
    tray, wait to throw away, wait to be dismissed. */
-const INCLASS=["first","fifth","media"];
+/* Where you are walking between places, the walking track plays. Where you are
+   settled \u2014 a classroom, a cafeteria, the media centre \u2014 the school bed
+   plays. Keeping the cafeterias on the walking track meant six stages running
+   back to back on one short loop, which is why it sounded like one song. */
+const WALKROOMS=["loop","holding","hall","corridor"];
 const isLunch=()=>!!(R()&&R().table==="lunch");
 const trayReady=()=>!isLunch()||called>=myTable;
 const tossReady=()=>!isLunch()||tCalled>=myTable;
@@ -2597,6 +2601,10 @@ function move(dx,dy){
   if(dx){face=dx>0?1:-1;dir="side";}
   else if(dy)dir=dy<0?"up":"down";
   const nx=px+dx,ny=py+dy,ch=tileAt(nx,ny);
+  /* Read the campus logo straight off the map, before anything else can claim
+     the press. Going through tileAt and the tile switch further down meant the
+     whole Hawkman trail never fired in a real game. */
+  if(((R().map[ny]||"")[nx])==="M"){releaseHeld();wallHawk();return;}
   /* after the laptop question, go back to the teacher for a pass */
   const doneT=R().npcs.find(p=>p.done&&p.who==="CMS Teacher"&&p.x===nx&&p.y===ny);
   if(doneT&&R().id==="fifth"&&R().npcs.every(p=>p.done)&&!hasPass){
@@ -2942,7 +2950,42 @@ function paceCheck(){
         need+" more steps will finish this stage.");
   }
 }
+/* Walk near a campus hawk and it catches your eye. Without this nobody ever
+   thinks to press into a wall decal, and the whole Hawkman trail sat unfound. */
+let logoNudged=0;
+/* Said when they are actually beside the patch, rather than on a timer that
+   competes with whatever else the room wants to tell them. */
+let grassSaid=false;
+function nearGrass(){
+  if(!grassOpen||hawkSeen||grassSaid)return false;
+  const room=R();if(!room||!room.map)return false;
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+    if(((room.map[py+dy]||"")[px+dx])==="G"){
+      grassSaid=true;SFX.talk();
+      say("<b>Long grass.</b> Something moved in it. Walk in.");
+      return true;
+    }
+  }
+  return false;
+}
+function nearLogo(){
+  const room=R();if(!room||!room.map)return false;
+  if(wallSaid>=2||logoNudged>=2)return false;
+  for(const [dx,dy] of [[0,-1],[0,1],[-1,0],[1,0]]){
+    const x=px+dx,y=py+dy;
+    if(((room.map[y]||"")[x])==="M"){
+      logoNudged++;SFX.talk();
+      say(wallSaid===0
+        ? "The hawk painted on the wall is <b>looking right at you</b>. Walk into it."
+        : "It is still watching. <b>Walk into it again.</b>");
+      return true;
+    }
+  }
+  return false;
+}
 function nearGreet(){
+  if(nearGrass())return true;
+  if(nearLogo())return true;
   const room=R();
   const list=[].concat(room.npcs,room.amb||[]);
   for(const p of list){
@@ -3106,6 +3149,9 @@ function showCard(cb){
 function enterRoom(){showCard(enterRoomNow);}
 function enterRoomNow(){
   if(!R()){brief();return;}   /* a queued card can fire after the last stage */
+  /* Set before anything below can return early \u2014 the no-pass walkway branch
+     used to skip this, so those stages kept whatever was playing before. */
+  roomMusic();
   saveGame("room");
   autoStop();stepBonus=0;nudged=false;autoFired=false;
   if(R().seatSim||R().id==="fifth")buildClass();
@@ -3132,9 +3178,6 @@ function enterRoomNow(){
   }
   if(R().lunch)startLunch();
   roomMs=0;steps=0;evIdx=0;sat=false;mode="map";startClock();SFX.bell();hud();paintClock();render();
-  /* Out of class \u2014 bus loop, holding area, the walkways, the cafeterias \u2014
-     keeps the walking track. Sitting down in a room switches to the school bed. */
-  roomMusic();
   say("<b>"+R().name+"</b> — "+R().intro);
 }
 
@@ -4586,7 +4629,7 @@ function start(){
   seated=false;hasTray=false;ate=false;thrown=false;dismissed=false;called=0;tCalled=0;satAfter=false;
   clearInterval(callTimer);callTimer=null;clearInterval(dumpTimer);dumpTimer=null;
   clearInterval(tossTimer);tossTimer=null;autoEscort=false;
-  hawkSeen=false;caughtHawk=false;wallSaid=0;grassOpen=false;
+  hawkSeen=false;caughtHawk=false;wallSaid=0;grassOpen=false;logoNudged=0;grassSaid=false;
   cancelAnimationFrame(flyRAF);flyRAF=null;
   cut=null;
   roomIdx=(PART===2?5:0);                    /* part 2 picks up at B lunch */
