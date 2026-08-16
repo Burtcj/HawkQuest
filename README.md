@@ -9,15 +9,12 @@ and the link works.
 |---|---|
 | `index.html` | Hawk Quest. This is the student link. |
 | `flight.html` | Hawk Flight on its own, if you ever want it separately. |
-| `assets/title-music.mp3` | Plays on the title screen only. |
 | `.nojekyll` | Tells GitHub to serve the files as-is. Leave it there. |
 
 ## Putting it on GitHub Pages
 
 1. On github.com, **New repository**. Name it `hawkquest`. Public. Create.
-2. On the repo page, **Add file → Upload files**. Drag in `index.html`,
-   `flight.html`, `preview.html`, `.nojekyll`, and the whole `assets` folder.
-   Commit.
+2. On the repo page, **Add file → Upload files**. Drag in `index.html`, `flight.html` and `.nojekyll`. Commit.
 3. **Settings → Pages.** Under *Build and deployment*, Source = **Deploy from a
    branch**, Branch = **main**, folder = **/ (root)**. Save.
 4. Wait a minute or two. Your link is:
@@ -75,6 +72,13 @@ The window is checked against the clock on the **web server**, not the student's
 device, so a student changing the clock on their phone gets nowhere. That check
 needs the page to be online: if it cannot reach the server it will not open, which
 is deliberate — it stops a student saving the file and playing it offline later.
+
+## Music
+
+Both tracks are built into `index.html` itself — there is no separate audio
+file to upload and nothing to go missing. The theme plays on the title and
+closing screens, and a quieter second track runs under the game while a student
+is playing. The Sound button turns both off.
 
 ## Testing it before Friday
 
